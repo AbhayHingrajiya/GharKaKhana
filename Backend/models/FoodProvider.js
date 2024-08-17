@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-// Define the schema for the 'FoodConsumer' model
-const foodConsumerSchema = new Schema({
+// Define the schema for the 'FoodProvider' model
+const foodProviderSchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -32,6 +32,6 @@ const foodConsumerSchema = new Schema({
 });
 
 // Create the model
-const FoodConsumer = mongoose.model('FoodConsumer', foodConsumerSchema);
+const FoodProvider = mongoose.model('FoodProvider', foodProviderSchema);
 
-export default FoodConsumer;
+export default FoodProvider;
