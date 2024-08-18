@@ -1,9 +1,12 @@
 import FoodConsumer from '../models/FoodConsumer.js'; 
 import DeliveryBoy from '../models/deliveryBoy.js'; 
-import FoodProvider from '../models/FoodProvider.js'; 
+import FoodProvider from '../models/FoodProvider.js';
+import bcrypt from 'bcrypt';
 
 export const signUpFoodConsumer = async (req, res) => {
     const { name, email, phoneNumber, password } = req.body;
+    const salt = await bcrypt.genSalt(10);
+		const hashedPassword = await bcrypt.hash(password, salt);
   
     try {
       // Create a new instance of the foodConsumer model
@@ -11,7 +14,7 @@ export const signUpFoodConsumer = async (req, res) => {
         name,
         email,
         phoneNumber,
-        password
+        password: hashedPassword
       });
   
       // Save the foodConsumer to the database
@@ -25,7 +28,6 @@ export const signUpFoodConsumer = async (req, res) => {
           name: foodConsumer.name,
           email: foodConsumer.email,
           phoneNumber: foodConsumer.phoneNumber
-          // Do not send the password back in the response
         }
       });
     } catch (error) {
@@ -39,6 +41,8 @@ export const signUpFoodConsumer = async (req, res) => {
 
 export const signUpFoodProvider = async (req, res) => {
     const { name, email, phoneNumber, password } = req.body;
+    const salt = await bcrypt.genSalt(10);
+		const hashedPassword = await bcrypt.hash(password, salt);
 
     try {
     // Create a new instance of the foodProvider model
@@ -46,7 +50,7 @@ export const signUpFoodProvider = async (req, res) => {
         name,
         email,
         phoneNumber,
-        password
+        password: hashedPassword
     });
 
     // Save the foodProvider to the database
@@ -60,7 +64,6 @@ export const signUpFoodProvider = async (req, res) => {
         name: foodProvider.name,
         email: foodProvider.email,
         phoneNumber: foodProvider.phoneNumber
-        // Do not send the password back in the response
         }
     });
     } catch (error) {
@@ -74,6 +77,8 @@ export const signUpFoodProvider = async (req, res) => {
 
 export const signUpDeliveryBoy = async (req, res) => {
   const { name, email, phoneNumber, licenseNumber, licensePhoto, vehicleNumber, vehicleName, password } = req.body;
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
 
   try {
     // Create a new instance of the DeliveryBoy model
@@ -85,7 +90,7 @@ export const signUpDeliveryBoy = async (req, res) => {
       licensePhoto,
       vehicleNumber,
       vehicleName,
-      password
+      password: hashedPassword
     });
 
     // Save the deliveryBoy to the database
