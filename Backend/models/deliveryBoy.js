@@ -31,7 +31,7 @@ const deliveryBoySchema = new Schema({
     unique: true // Ensure the license number is unique
   },
   licensePhoto: {
-    type: String, // Store the path or URL to the license photo
+    type: Buffer, // Store the path or URL to the license photo
     required: true
   },
   vehicleNumber: {
@@ -41,6 +41,11 @@ const deliveryBoySchema = new Schema({
     unique: true // Ensure the vehicle number is unique
   },
   vehicleName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  cityName: {
     type: String,
     required: true,
     trim: true
