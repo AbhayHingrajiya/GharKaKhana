@@ -29,8 +29,3 @@ Thumbs.db
 # IDE-specific files (e.g., VSCode)
 .vscode/
 .idea/
-
-# Build directories
-dist/
-build/
-coverage/

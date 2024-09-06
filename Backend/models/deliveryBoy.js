@@ -2,8 +2,8 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-// Define the schema for the 'FoodConsumer' model
-const foodConsumerSchema = new Schema({
+// Define the schema for the 'DeliveryBoy' model
+const deliveryBoySchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -24,6 +24,27 @@ const foodConsumerSchema = new Schema({
     trim: true, // Removes leading and trailing spaces
     match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number'] // Validates a 10-digit phone number format
   },
+  licenseNumber: {
+    type: String,
+    required: true,
+    trim: true, // Removes leading and trailing spaces
+    unique: true // Ensure the license number is unique
+  },
+  licensePhoto: {
+    type: String, // Store the path or URL to the license photo
+    required: true
+  },
+  vehicleNumber: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true // Ensure the vehicle number is unique
+  },
+  vehicleName: {
+    type: String,
+    required: true,
+    trim: true
+  },
   password: {
     type: String,
     required: true,
@@ -32,6 +53,6 @@ const foodConsumerSchema = new Schema({
 });
 
 // Create the model
-const FoodConsumer = mongoose.model('FoodConsumer', foodConsumerSchema);
+const DeliveryBoy = mongoose.model('DeliveryBoy', deliveryBoySchema);
 
-export default FoodConsumer;
+export default DeliveryBoy;
