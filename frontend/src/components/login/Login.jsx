@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-// import axios from "axios";
+import axios from "axios";
 import {useNavigate} from 'react-router-dom';
 import login_girl from '../../assets/log.svg'
 import './Login.css'
@@ -25,8 +25,18 @@ const LoginForm = () => {
         e.preventDefault();
         try {
             const response = await axios.post('/api/login', {email, password});
+            if(response.data.type === 'foodConsumer'){
+                navigate('/consumerHomePage');
+            }else if(response.data.type === 'deliveryBoy'){
+                navigate('/deliveryHomePage');
+            }else if(response.data.type === 'foodProvider'){
+                navigate('/providerHomePage');
+            }else{
+                setMessage("Email or Password doesn't match");
+            }
         } catch (error) {
             setMessage("Failed to log in. Please try again.");
+            console.log(error)
         }
     };
 

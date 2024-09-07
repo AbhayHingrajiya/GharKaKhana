@@ -1,6 +1,7 @@
 import FoodConsumer from '../models/FoodConsumer.js'; 
 import DeliveryBoy from '../models/deliveryBoy.js'; 
 import FoodProvider from '../models/FoodProvider.js';
+import { generateTokenAndSetCookie } from '../lib/generateToken.js'
 import bcrypt from 'bcrypt';
 import multer from 'multer';
 
@@ -25,6 +26,8 @@ export const signUpFoodConsumer = async (req, res) => {
       // Save the foodConsumer to the database
       await foodConsumer.save();
       console.log('Consumer Added')
+      
+      generateTokenAndSetCookie(foodConsumer._id, res);
   
       // Send a response back to the client
       res.status(201).json({
@@ -61,6 +64,8 @@ export const signUpFoodProvider = async (req, res) => {
 
     // Save the foodProvider to the database
     await foodProvider.save();
+
+    generateTokenAndSetCookie(foodProvider._id, res);
 
     // Send a response back to the client
     res.status(201).json({
@@ -107,6 +112,8 @@ export const signUpDeliveryBoy = async (req, res) => {
       // Save the deliveryBoy to the database
       await deliveryBoy.save();
 
+      generateTokenAndSetCookie(deliveryBoy._id, res);
+
       // Send a response back to the client
       res.status(201).json({
         message: 'DeliveryBoy created successfully',
@@ -134,5 +141,40 @@ export const signUpDeliveryBoy = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-    const {email, password} = req.body;
-}
+  const { email, password } = req.body;
+
+  try {
+      const userTypes = [
+          { type: 'foodConsumer', model: FoodConsumer },
+          { type: 'deliveryBoy', model: DeliveryBoy },
+          { type: 'foodProvider', model: FoodProvider }
+      ];
+
+      for (const userType of userTypes) {
+          const user = await userType.model.findOne({ email: email });
+
+          if (user) {
+              const isPasswordCorrect = await bcrypt.compare(password, user.password);
+              if (isPasswordCorrect) {
+                  generateTokenAndSetCookie(user._id, res);
+                  return res.status(200).json({
+                      _id: user._id,
+                      name: user.name,
+                      email: user.email,
+                      phoneNumber: user.phoneNumber,
+                      type: userType.type
+                  });
+              } else {
+                  return res.status(401).json({ message: 'Invalid password' });
+              }
+          }
+      }
+
+      // If no user is found after checking all models
+      return res.status(404).json({ message: 'User not found' });
+
+  } catch (error) {
+      console.log("Error in login function: ", error.message);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+};

@@ -38,7 +38,7 @@ const SignUp = () => {
                     setMessage(response.data.message);
 
                     // dispatch(currentUser({ name:data.name, email: data.email, profilePicture: profilePicturePath.default }));
-                    navigate('/home');
+                    navigate('/consumerHomePage');
                     alert('Data Added')
                 }
             } catch (error) {
@@ -65,7 +65,7 @@ const SignUp = () => {
                     setMessage(response.data.message);
 
                     // dispatch(currentUser({ name:data.name, email: data.email, profilePicture: profilePicturePath.default }));
-                    navigate('/home');
+                    navigate('/providerHomePage');
                     alert('Data Added')
                 }
             } catch (error) {
@@ -112,7 +112,7 @@ const SignUp = () => {
                     setMessage(response.data.message);
 
                     // dispatch(currentUser({ name:data.name, email: data.email, profilePicture: profilePicturePath.default }));
-                    navigate('/home');
+                    navigate('/deliveryHomePage');
                     alert('Data Added')
                 }
             } catch (error) {
