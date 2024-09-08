@@ -136,7 +136,7 @@ const SignUp = () => {
                         <div className="text-3xl font-extrabold text-gray-800 mb-8 self-center text-2xl leading-8 text-center whitespace-nowrap text-neutral-900">
                             Sign up to Ghar Ka Khana
                         </div>
-                        <h3 className="text-xl font-extrabold">Are you a?</h3><br />
+                        <h3 className="text-xl font-extrabold text-center">Are you a?</h3><br />
                         <div className="flex items-center space-x-4 ml-8">
                             <label className="inline-flex items-center">
                                 <input
