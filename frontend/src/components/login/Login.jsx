@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import axios from "axios";
 import {useNavigate} from 'react-router-dom';
-import login_girl from '../../assets/log.svg'
+import logo from '../../assets/fullLogo.jpeg'
 import './Login.css'
 import { useDispatch } from 'react-redux';
 // import { currentUser } from '../../features/authentication/auth.js';
@@ -100,7 +100,7 @@ const Login = () => {
                 <div className="flex justify-center items-center flex-wrap h-full g-6 text-gray-800">
                     <div className="md:w-8/12 lg:w-6/12 mb-12 md:mb-0 ">
                         <img
-                            src={login_girl}
+                            src={logo}
                             className="w-full"
                             alt="Phone image"
                         />

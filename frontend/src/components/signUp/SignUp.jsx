@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Login_girl from '../../assets/draw2.svg';
+import logo from '../../assets/logo2.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {useDispatch} from "react-redux";
@@ -127,7 +127,7 @@ const SignUp = () => {
                 <div className="flex justify-center items-center flex-wrap h-full g-6 text-gray-800">
                     <div className="md:w-8/12 lg:w-6/12 mb-12 md:mb-0">
                         <img
-                            src={Login_girl}
+                            src={logo}
                             className="w-full"
                             alt="logo"
                         />
