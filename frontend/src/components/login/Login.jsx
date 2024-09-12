@@ -4,11 +4,11 @@ import {useNavigate} from 'react-router-dom';
 import logo from '../../assets/fullLogo.jpeg'
 import './Login.css'
 import { useDispatch } from 'react-redux';
-// import { currentUser } from '../../features/authentication/auth.js';
+import { setUser, logout } from '../../redux/auth/auth';
 import  pic from '../../assets/test.jpg';
 const LoginForm = () => {
-    const navigate = useNavigate(); // Initialize useNavigate hook
-    // const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -25,14 +25,24 @@ const LoginForm = () => {
         e.preventDefault();
         try {
             const response = await axios.post('/api/login', {email, password});
-            if(response.data.type === 'foodConsumer'){
-                navigate('/consumerHomePage');
-            }else if(response.data.type === 'deliveryBoy'){
-                navigate('/deliveryHomePage');
-            }else if(response.data.type === 'foodProvider'){
-                navigate('/providerHomePage');
+            if(response.status == 200){
+                dispatch(setUser({
+                    name: response.data.name,
+                    email: response.data.email,
+                    isLogedin: true,
+                    userType: response.data.type
+                }));
+                if(response.data.type === 'foodConsumer'){
+                    navigate('/consumerHomePage');
+                }else if(response.data.type === 'deliveryBoy'){
+                    navigate('/deliveryHomePage');
+                }else if(response.data.type === 'foodProvider'){
+                    navigate('/providerHomePage');
+                }else{
+                    setMessage("Email or Password doesn't match");
+                }
             }else{
-                setMessage("Email or Password doesn't match");
+                console.log('get a negative responce code '+response.status)
             }
         } catch (error) {
             setMessage("Failed to log in. Please try again.");

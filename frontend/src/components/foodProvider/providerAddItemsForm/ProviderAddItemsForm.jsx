@@ -28,16 +28,19 @@ const ProviderAddItemsForm = () => {
         const itemNameInput = document.createElement('input');
         itemNameInput.type = 'text';
         itemNameInput.placeholder = 'Item Name';
+        itemNameInput.name = 'itemName';
         itemNameInput.className = 'flex-grow-[3.5] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105';
 
         // Create and style input for item quantity
         const itemQuantityInput = document.createElement('input');
         itemQuantityInput.type = 'text';
         itemQuantityInput.placeholder = 'Item Quantity';
+        itemQuantityInput.name = 'itemQuantity';
         itemQuantityInput.className = 'flex-grow-[3.5] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105';
 
         // Create and style select for flavor
         const flavorSelect = document.createElement('select');
+        flavorSelect.name = 'itemFlavor';
         flavorSelect.className = 'flex-grow-[3] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105';
 
         // Create options for select
@@ -150,11 +153,27 @@ const ProviderAddItemsForm = () => {
 
     const addDishFormSubmit = async (e) => {
       e.preventDefault();
+      
+      const itemName = document.getElementsByName('itemName');
+      const itemQuantity = document.getElementsByName('itemQuantity');
+      const itemFlavor = document.getElementsByName('itemFlavor');
+
+      let itemDetailsArray = [];
+
+      for (let i = 0; i < itemName.length; i++) {
+        if(itemName[i].value.trim() == '') continue;
+          itemDetailsArray.push({
+              itemName: itemName[i].value,
+              itemQuantity: itemQuantity[i].value,
+              itemFlavor: itemFlavor[i].value
+          });
+      }
       if (validateForm()) {
         const updatedFormData = {
           ...formData,
           deliveryTill: isDeliveryAnyTime ? 'any' : formData.deliveryTill,
           orderTill: isOrderAnyTime ? 'any' : formData.orderTill,
+          items: itemDetailsArray,
         };
         setFormData(updatedFormData);
         try{
@@ -173,6 +192,8 @@ const ProviderAddItemsForm = () => {
           });
           setIsDeliveryAnyTime(false);
           setIsOrderAnyTime(false);
+          document.getElementById('itemDetails').innerHTML='';
+          addNewItem();
         }catch (err){
           console.log('Error in addDish method at frontend side: '+err);
         }
@@ -435,41 +456,44 @@ const ProviderAddItemsForm = () => {
             </div>
   
           <div id="itemDetails">
-              <motion.div
-                  className="flex space-x-4 flex-wrap gap-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  >
-                  <motion.input
-                      type="text"
-                      placeholder="Item Name"
-                      className="flex-grow-[3.5] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
-                      whileFocus={{ scale: 1.05 }}
-                  />
-                  <motion.input
-                      type="text"
-                      placeholder="Item Quantity"
-                      className="flex-grow-[3.5] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
-                      whileFocus={{ scale: 1.05 }}
-                  />
-                  <motion.select
-                      className="flex-grow-[3] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
-                      whileFocus={{ scale: 1.05 }}
-                  >
-                      <option value="flavor">Flavor</option>
-                      <option value="spicy">Spicy</option>
-                      <option value="salty">Salty</option>
-                      <option value="sweet">Sweet</option>
-                      <option value="sour">Sour</option>
-                      <option value="bitter">Bitter</option>
-                      <option value="savory">Savory</option>
-                      <option value="tangy">Tangy</option>
-                      <option value="smoky">Smoky</option>
-                      <option value="hot">Hot</option>
-                      <option value="peppery">Peppery</option>
-                  </motion.select>
-              </motion.div>
+            <motion.div
+                className="flex space-x-4 flex-wrap gap-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                >
+                <motion.input
+                    type="text"
+                    placeholder="Item Name"
+                    name="itemName"
+                    className="flex-grow-[3.5] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
+                    whileFocus={{ scale: 1.05 }}
+                />
+                <motion.input
+                    type="text"
+                    placeholder="Item Quantity"
+                    name="itemQuantity"
+                    className="flex-grow-[3.5] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
+                    whileFocus={{ scale: 1.05 }}
+                />
+                <motion.select
+                    className="flex-grow-[3] p-3 border border-gray-300 rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
+                    whileFocus={{ scale: 1.05 }}
+                    name="itemFlavor"
+                >
+                    <option value="flavor">Flavor</option>
+                    <option value="spicy">Spicy</option>
+                    <option value="salty">Salty</option>
+                    <option value="sweet">Sweet</option>
+                    <option value="sour">Sour</option>
+                    <option value="bitter">Bitter</option>
+                    <option value="savory">Savory</option>
+                    <option value="tangy">Tangy</option>
+                    <option value="smoky">Smoky</option>
+                    <option value="hot">Hot</option>
+                    <option value="peppery">Peppery</option>
+                </motion.select>
+            </motion.div>
           </div>
           <motion.button
               className="w-full mt-2 py-3 bg-green-500 text-white font-bold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"

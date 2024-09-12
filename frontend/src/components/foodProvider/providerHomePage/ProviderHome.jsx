@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import ProviderNavbar from '../providerNavbar/ProviderNavbar'
 import test from '../../../assets/test.jpg'
 import { motion } from 'framer-motion';
-import ProviderAddItemsForm from '../providerAddItemsForm/ProviderAddItemsForm'
+import ProviderAddItemsForm from '../providerAddItemsForm/ProviderAddItemsForm';
+import { useDispatch, useSelector } from 'react-redux';
 
 const ProviderHomePage = () => {
+
+    const user = useSelector((state) => state.user);
 
     const sortLinesForFoodCreators = [
         "Share Your Homemade Creations Today!",

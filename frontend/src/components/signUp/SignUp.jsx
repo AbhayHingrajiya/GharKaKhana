@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import logo from '../../assets/logo2.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import { setUser, logout } from '../../redux/auth/auth';
 
 const SignUp = () => {
-    // const dispatch = useDispatch();
+    const user = useSelector((state) => state.user);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const [signUpFor, setSignUpFor]=useState('consumer');
     const [message, setMessage] = useState('');
@@ -37,9 +39,15 @@ const SignUp = () => {
                 } else {
                     setMessage(response.data.message);
 
-                    // dispatch(currentUser({ name:data.name, email: data.email, profilePicture: profilePicturePath.default }));
+                    dispatch(setUser({
+                        name: response.data.foodConsumer.name,
+                        email: response.data.foodConsumer.email,
+                        isLogedin: true,
+                        userType: 'foodConsumer'
+                    }));
+
+                    alert('You are sign up successfully')
                     navigate('/consumerHomePage');
-                    alert('Data Added')
                 }
             } catch (error) {
                 setMessage('Your data filds is not valid.');
@@ -63,10 +71,14 @@ const SignUp = () => {
                     setMessage(response.data.error);
                 } else {
                     setMessage(response.data.message);
-
-                    // dispatch(currentUser({ name:data.name, email: data.email, profilePicture: profilePicturePath.default }));
+                    dispatch(setUser({
+                        name: response.data.foodProvider.name,
+                        email: response.data.foodProvider.email,
+                        isLogedin: true,
+                        userType: 'foodProvider'
+                    }))
+                    alert('You are signed up successfully');
                     navigate('/providerHomePage');
-                    alert('Data Added')
                 }
             } catch (error) {
                 setMessage('Your data filds is not valid.');
@@ -111,9 +123,15 @@ const SignUp = () => {
                 } else {
                     setMessage(response.data.message);
 
-                    // dispatch(currentUser({ name:data.name, email: data.email, profilePicture: profilePicturePath.default }));
+                    dispatch(setUser({
+                        name: response.data.deliveryBoy.name,
+                        email: response.data.deliveryBoy.email,
+                        isLogedin: true,
+                        userType: 'deliveryBoy'
+                    }));
+                    
+                    alert('You are sign up successfully')
                     navigate('/deliveryHomePage');
-                    alert('Data Added')
                 }
             } catch (error) {
                 setMessage('Your data filds is not valid.');
