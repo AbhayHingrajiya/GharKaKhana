@@ -3,9 +3,10 @@ import './App.css';
 import axios from "axios";
 import Login from "./components/login/Login";
 import { useDispatch, useSelector } from 'react-redux';
-import { setUser, logout } from './redux/auth/auth';
+import { setUser } from './redux/auth/auth';
 import SignUp from "./components/signUp/SignUp";
 import ProviderHomePage from "./components/foodProvider/providerHomePage/providerHome";
+import ProviderOrderList from "./components/foodProvider/providerOrderList/ProviderOrderList";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ClimbingBoxLoader } from "react-spinners";
 
@@ -17,8 +18,7 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    setIsLogedIn(user.isLogedin)
-    console.log('check login or not');
+    setIsLogedIn(user.isLogedin);
   }, [user.isLogedin] )
 
   useEffect(() => {
@@ -71,6 +71,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/providerHomePage" element={isLogedIn ? <ProviderHomePage /> : <Login />} />
+        <Route path="/providerOrderList" element={isLogedIn ? <ProviderOrderList /> : <Login />} />
       </Routes>
     </Router>
   );

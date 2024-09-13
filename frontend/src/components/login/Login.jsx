@@ -4,7 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import logo from '../../assets/fullLogo.jpeg'
 import './Login.css'
 import { useDispatch } from 'react-redux';
-import { setUser, logout } from '../../redux/auth/auth';
+import { setUser } from '../../redux/auth/auth';
 import  pic from '../../assets/test.jpg';
 const LoginForm = () => {
     const navigate = useNavigate();

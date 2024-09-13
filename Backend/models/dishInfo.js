@@ -28,8 +28,9 @@ const dishInfoSchema = new Schema({
     type: Number,
     required: true
   },
-  dishFlavor: {
-    type: String,
+  dishQuantity: {
+    type: Number,
+    required: true
   },
   orderTill: {
     type: String,
@@ -38,6 +39,14 @@ const dishInfoSchema = new Schema({
   deliveryTill: {
     type: String,
     required: true
+  },
+  repeat: {
+    type: [String],
+    required: true
+  },
+  status: {
+    type: String,
+    default: 'Create'
   },
   date: {
     type: Date,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import axios from "axios";
 
@@ -6,11 +6,14 @@ const ProviderAddItemsForm = () => {
     
     const [isOrderAnyTime, setIsOrderAnyTime] = useState(false);
     const [isDeliveryAnyTime, setIsDeliveryAnyTime] = useState(false);
+    const days = ['Everyday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const [selectedDays, setSelectedDays] = useState([]);
+
     const [formData, setFormData] = useState({
         dishName: '',
         address: '',
         dishPrice: '',
-        dishFlavor: '',
+        dishQuantity: '',
         orderTill: '',
         deliveryTill: '',
         cityName: '',
@@ -139,6 +142,10 @@ const ProviderAddItemsForm = () => {
         newErrors.cityName = 'City Name is required';
         formValid = false;
       }
+      if (!formData.dishQuantity) {
+        newErrors.dishQuantity = 'Dish quantity is required';
+        formValid = false;
+      }
       if (!formData.pincode) {
         newErrors.pincode = 'Pincode is required';
         formValid = false;
@@ -174,6 +181,7 @@ const ProviderAddItemsForm = () => {
           deliveryTill: isDeliveryAnyTime ? 'any' : formData.deliveryTill,
           orderTill: isOrderAnyTime ? 'any' : formData.orderTill,
           items: itemDetailsArray,
+          repeat: selectedDays
         };
         setFormData(updatedFormData);
         try{
@@ -184,7 +192,7 @@ const ProviderAddItemsForm = () => {
             dishName: '',
             address: '',
             dishPrice: '',
-            dishFlavor: '',
+            dishQuantity: '',
             orderTill: '',
             deliveryTill: '',
             cityName: '',
@@ -193,6 +201,7 @@ const ProviderAddItemsForm = () => {
           setIsDeliveryAnyTime(false);
           setIsOrderAnyTime(false);
           document.getElementById('itemDetails').innerHTML='';
+          setSelectedDays([])
           addNewItem();
         }catch (err){
           console.log('Error in addDish method at frontend side: '+err);
@@ -252,6 +261,30 @@ const ProviderAddItemsForm = () => {
         });
     };
       
+    const handleCheckboxChange = (day) => {
+      if (day === 'Everyday') {
+        // If "Everyday" is selected, select all other days
+        if (selectedDays.includes('Everyday')) {
+          setSelectedDays([]); // Uncheck all if "Everyday" is unchecked
+        } else {
+          setSelectedDays(days); // Select all days if "Everyday" is checked
+        }
+      } else {
+        // Handle individual day selection
+        const newSelectedDays = selectedDays.includes(day)
+          ? selectedDays.filter((d) => d !== day) // Deselect the clicked day
+          : [...selectedDays, day]; // Select the clicked day
+  
+        // If all individual days are selected, select "Everyday"
+        if (newSelectedDays.length === days.length - 1 && !newSelectedDays.includes('Everyday')) {
+          newSelectedDays.push('Everyday');
+        } else if (newSelectedDays.includes('Everyday')) {
+          newSelectedDays.splice(newSelectedDays.indexOf('Everyday'), 1); // Remove "Everyday" if a day is deselected
+        }
+  
+        setSelectedDays(newSelectedDays);
+      }
+    };
 
   return (
     <div>
@@ -282,26 +315,17 @@ const ProviderAddItemsForm = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <label className="block text-sm font-medium text-gray-700">Dish Flavor</label>
-            <motion.select
-              name="dishFlavor"
-              value={formData.dishFlavor}
+            <label className="block text-sm font-medium text-gray-700">Dish Quantity</label>
+            <motion.input
+              type="number"
+              name="dishQuantity"
+              placeholder="Enter Dish Quantity"
+              value={formData.dishQuantity}
               onChange={handleInputChange}
-              className={`w-full p-3 border rounded-lg shadow-md focus:ring-2 border-gray-300  focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105`}
+              className={`w-full p-3 border ${errors.dishQuantity ? 'border-red-500' : 'border-gray-300'} rounded-lg shadow-md focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out transform hover:scale-105`}
               whileFocus={{ scale: 1.05 }}
-            >
-              <option value="">Select a flavor</option>
-              <option value="spicy">Spicy</option>
-              <option value="salty">Salty</option>
-              <option value="sweet">Sweet</option>
-              <option value="sour">Sour</option>
-              <option value="bitter">Bitter</option>
-              <option value="savory">Savory</option>
-              <option value="tangy">Tangy</option>
-              <option value="smoky">Smoky</option>
-              <option value="hot">Hot</option>
-              <option value="peppery">Peppery</option>
-            </motion.select>
+            />
+            {errors.dishQuantity && <span className="text-red-500 text-sm">{errors.dishQuantity}</span>}
           </motion.div>
 
           <motion.div
@@ -505,6 +529,31 @@ const ProviderAddItemsForm = () => {
               >
               + Add Item
           </motion.button>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold">Can you repeat the order?</h3>
+          </div>
+
+          <div className="flex flex-wrap gap-4">
+            {days.map((day, index) => (
+              <motion.label
+                key={index}
+                className="flex items-center space-x-2 cursor-pointer"
+                whileHover={{ scale: 1.1, color: '#059669' }}
+                whileTap={{ scale: 0.95 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-5 w-5 text-green-600"
+                  onChange={() => handleCheckboxChange(day)}
+                  checked={selectedDays.includes(day)} // Keeps checkbox state in sync with selectedDays
+                />
+                <span>{day}</span>
+              </motion.label>
+            ))}
+          </div>
 
           <motion.div
               initial={{ opacity: 0, y: 10 }}
