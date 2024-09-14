@@ -44,13 +44,9 @@ const dishInfoSchema = new Schema({
     type: [String],
     required: true
   },
-  status: {
-    type: String,
-    default: 'Create'
-  },
   date: {
     type: Date,
-    default: Date.now
+    default: () => new Date()
   }
 });
 

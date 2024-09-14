@@ -2,21 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaEllipsisV } from 'react-icons/fa';
 
-const ProviderDishCard = ({ dish, repeatedDays }) => {
+const ProviderDishCard = ({ dish, item, Quantity }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [expireDate, setExpireDate] = useState(
-    calculateExpireDate(dish.addedDate, dish.expiryTime)
-  );
-  const [timeLeft, setTimeLeft] = useState(getFormattedTimeLeft(expireDate));
+  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any')? useState (false) :
+   useState(
+    calculateExpireDate(dish.date, dish.deliveryTill)
+   );
+  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery ) ? useState(getFormattedTimeLeft(expireDateDelivery)) : useState (false);
+  
+  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any')? useState (false) :
+   useState(
+    calculateExpireDate(dish.date, dish.orderTill)
+   );
+  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder ) ? useState(getFormattedTimeLeft(expireDateOrder)) : useState (false);
+  
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(getFormattedTimeLeft(expireDate));
+      setTimeLeftDelivery(getFormattedTimeLeft(expireDateDelivery));
+      if(!timeLeftDelivery){
+        console.log('delivery time expire')
+        clearInterval(timer);
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [expireDate]);
+  }, [expireDateDelivery]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeftOrder(getFormattedTimeLeft(expireDateOrder));
+      if(!timeLeftOrder){
+        console.log('Order time expire')
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [expireDateOrder]);
 
   const handleToggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -28,6 +52,7 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
 
   function getFormattedTimeLeft(targetDate) {
     const now = new Date();
+    if(targetDate < now || !targetDate) return false
     const timeLeft = targetDate - now;
 
     const hours = Math.floor((timeLeft / (1000 * 60 * 60)) % 24);
@@ -38,17 +63,28 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
   }
 
   function calculateExpireDate(addedDate, expiryTime) {
-    const addedDateTime = new Date(addedDate);
+    const isDate = new Date(addedDate);
+    const istOffset = 5 * 60 * 60 * 1000 + 30 * 60 * 1000;
+    const addedDateTime = new Date(isDate + istOffset);
     const [hours, minutes] = expiryTime.split(':').map(Number);
-
+  
     addedDateTime.setHours(hours, minutes, 0, 0);
-
-    if (addedDateTime < new Date()) {
+  
+    const currentTime = new Date();
+    const timeDifference = currentTime - addedDateTime;
+    const differenceInDays = timeDifference / (1000 * 60 * 60 * 24);
+  
+    if (differenceInDays > 1) {
+      console.log(`The time difference is more than one day: ${differenceInDays.toFixed(2)} days`);
+    }
+  
+    if (addedDateTime < currentTime) {
       addedDateTime.setDate(addedDateTime.getDate() + 1);
     }
-
+  
     return addedDateTime;
   }
+  
 
   return (
     <motion.div
@@ -97,14 +133,17 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
         <motion.div className="relative lg:w-1/2">
           <motion.img
             className="h-48 w-full object-cover"
-            src={dish.image}
+            src='src/assets/test.jpg'
             alt={dish.dishName}
             initial={{ scale: 1 }}
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3 }}
           />
           <div className="absolute top-2 left-2 bg-green-600 text-white px-3 py-1 rounded-lg text-sm">
-            Expire: {timeLeft}
+            Delivery Till: { (timeLeftDelivery) ? timeLeftDelivery : 'None'}
+          </div>
+          <div className="absolute top-10 left-2 bg-green-600 text-white px-3 py-1 rounded-lg text-sm">
+            Order Till: { (timeLeftOrder) ? timeLeftOrder : 'None'}
           </div>
         </motion.div>
 
@@ -123,7 +162,7 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Price: ${dish.dishPrice.toFixed(2)}
+            Price: {dish.dishPrice.toFixed(2)} RS
           </motion.p>
           <motion.p
             className="text-gray-700 mb-4"
@@ -131,7 +170,7 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            Flavor: {dish.dishFlavor}
+            Quantity: {Quantity}
           </motion.p>
 
           <motion.button
@@ -152,21 +191,31 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
       >
         <div className="text-gray-700">
           <h3 className="text-xl font-semibold text-green-900 mb-2">Item Details:</h3>
-          {dish.itemDetails.map((item, index) => (
+          {item.map((items, index) => (
             <motion.div
               key={index}
-              className="text-green-900 mb-2"
-              initial={{ x: -30, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              className="p-4 mb-2 bg-green-50 border border-green-200 rounded-lg shadow-sm"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <div className="flex justify-between">
-                <span>{item.itemName}</span>
-                <span>{item.itemQuantity}g</span>
-                <span>{item.itemFlavor}</span>
+              <div className="flex flex-col">
+                <div className="flex justify-between mb-1">
+                  <span className="font-semibold">Item:</span>
+                  <span>{items.itemName}</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="font-semibold">Quantity:</span>
+                  <span>{items.itemQuantity}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Flavor:</span>
+                  <span>{items.itemFlavor}</span>
+                </div>
               </div>
             </motion.div>
           ))}
+
 
           {/* Display repeated days */}
           <motion.div
@@ -177,12 +226,12 @@ const ProviderDishCard = ({ dish, repeatedDays }) => {
           >
             <strong>Repeated Days:</strong>
             <br />
-            {repeatedDays && repeatedDays.length > 0 ? (
-              repeatedDays.reduce((acc, day, index) => {
+            {dish.repeat && dish.repeat.length > 0 ? (
+              dish.repeat.reduce((acc, day, index) => {
                 if (index % 3 === 0 && index !== 0) {
                   acc.push(<br key={`br-${index}`} />); // Break after every 3 days
                 }
-                acc.push(<span key={index}>{day}{index % 3 !== 2 && index !== repeatedDays.length - 1 ? ', ' : ''}</span>);
+                acc.push(<span key={index}>{day}{index % 3 !== 2 && index !== dish.repeat.length - 1 ? ', ' : ''}</span>);
                 return acc;
               }, [])
             ) : (
