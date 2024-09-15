@@ -46,7 +46,7 @@ const dishInfoSchema = new Schema({
   },
   date: {
     type: Date,
-    default: () => new Date()
+    default: () => new Date(Date.now() + (5 * 60 * 60 * 1000) + (30 * 60 * 1000))
   }
 });
 

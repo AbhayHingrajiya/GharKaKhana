@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import axios from "axios";
+import {useNavigate, useLocation} from 'react-router-dom';
 
 const ProviderAddItemsForm = () => {
-    
+  const location = useLocation();
+    const dishData = location.state?.dishInfo;
     const [isOrderAnyTime, setIsOrderAnyTime] = useState(false);
     const [isDeliveryAnyTime, setIsDeliveryAnyTime] = useState(false);
     const days = ['Everyday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -20,6 +22,12 @@ const ProviderAddItemsForm = () => {
         pincode: ''
       });
     const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+      if(dishData){
+        console.log(dishData)
+      }
+    },[])
 
     const addNewItem = () => {
 

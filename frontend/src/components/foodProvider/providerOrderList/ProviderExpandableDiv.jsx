@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-const ProviderExpandableDiv = ({ title, children, defaultExpand }) => {
+const ProviderExpandableDiv = ({ title, children, defaultExpand, theme }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpand);
 
   const handleToggle = () => {
@@ -12,7 +12,7 @@ const ProviderExpandableDiv = ({ title, children, defaultExpand }) => {
     <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-300 transition-transform duration-300 ease-in-out">
       <button
         onClick={handleToggle}
-        className={`w-full py-3 px-4 text-left font-semibold focus:outline-none transition-colors duration-300 ${isExpanded ? 'bg-green-700 text-white' : 'bg-green-600 text-white'}`}
+        className={`w-full py-3 px-4 text-left font-semibold focus:outline-none transition-colors duration-300 ${isExpanded ? (theme ? 'bg-green-700 text-white' : 'bg-red-700 text-white') : (theme ? 'bg-green-600 text-white' : 'bg-red-600 text-white')}`}
       >
         <span>{title}</span>
         <span className={`float-right transform transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>

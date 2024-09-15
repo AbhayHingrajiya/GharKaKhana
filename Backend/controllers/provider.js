@@ -76,7 +76,7 @@ export const addDish = async (req, res) => {
   }
 };
 
-export const getDishInfo = async (req, res) => {
+export const getAvailableDishInfo = async (req, res) => {
   try {
     // Fetch the provider ID
     const response = await axios.post('http://localhost:3000/api/getUserId', {}, {
@@ -109,7 +109,96 @@ export const getDishInfo = async (req, res) => {
 
         res.json(availableDishes);
       } catch (err) {
-        console.error('Error fetching dish info at provider.js:', err);
+        console.error('Error fetching available dish info at provider.js:', err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching provider ID:', error);
+    res.status(500).json({ message: 'Failed to fetch provider ID' });
+  }
+};
+
+export const cancelOrderProvider = async (req, res) => {
+  try {
+    // Fetch the provider ID
+    const response = await axios.post('http://localhost:3000/api/getUserId', {}, {
+      headers: {
+        Cookie: req.headers.cookie // Forward the cookies to the axios request
+      }
+    });
+
+    if (response.status === 200) {
+      const providerId = response.data.userId;
+      const dishId = req.body.dishId;
+
+      try {
+        const dishStatus = await DishStatus.findOne({ dishId, providerId });
+
+        if (dishStatus) {
+          const availableQty = dishStatus.availableQuantity+dishStatus.cancelQuantity;
+          console.log('available Q: '+dishStatus)
+
+          const updatedDishStatus = await DishStatus.findOneAndUpdate(
+            { dishId, providerId },
+            {
+              $set: {
+                cancelQuantity: availableQty,
+                availableQuantity: 0
+              }
+            },
+            { new: true }
+          );
+
+          res.status(200).send(updatedDishStatus);
+        } else {
+          res.status(404).send('Dish status not found');
+        }
+      } catch (err) {
+        console.error('Error in set expireDish at provider.js:', err);
+        res.status(500).send('Internal Server Error');
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching provider ID:', error);
+    res.status(500).json({ message: 'Failed to fetch provider ID' });
+  }
+};
+
+export const getCancelDishInfo = async (req, res) => {
+  try {
+    // Fetch the provider ID
+    const response = await axios.post('http://localhost:3000/api/getUserId', {}, {
+      headers: {
+        Cookie: req.headers.cookie // Forward the cookies to the axios request
+      }
+    });
+
+    if (response.status === 200) {
+      const providerId = response.data.userId;
+
+      try {
+
+        const cancelDish = await DishStatus.find({
+          providerId: providerId,
+          cancelQuantity: { $gt: 0 }
+        }).select('dishId cancelQuantity');
+        
+        const cancelDishes = await Promise.all(
+          cancelDish.map(async ({ dishId, cancelQuantity }) => {
+            const dishInfo = await DishInfo.findOne({ _id: dishId }).select('-address -cityName -pincode -dishQuantity');
+            const itemInfo = await ItemDetails.find({ dishId: dishId });
+            
+            return { dishInfo, itemInfo, cancelQuantity };
+          })
+        );
+        
+        console.log(cancelDishes);
+        
+
+        res.json(cancelDishes);
+      } catch (err) {
+        console.error('Error fetching cancel dish info at provider.js:', err);
         res.status(500).send('Internal Server Error');
       }
     }
