@@ -8,7 +8,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCancel, setIsCancel] = useState(false);
-  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any')? useState (false) :
+  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any') ? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.deliveryTill)
    );
@@ -56,6 +56,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
 
   function getFormattedTimeLeft(targetDate, expireTime) {
     const now = new Date();
+    if(expireTime == 'any') return false;
     if(targetDate < now || !targetDate){
       if(dish.repeat.length>0){
         const [hours, minutes] = expireTime.split(':').map(Number);
@@ -74,13 +75,18 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   }
 
   function checkForRepeat (hours, minutes) {
-    const now = new Date();
+    let now = new Date();
     const dayOfWeek = now.getDay();
     const days = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     if(dish.repeat.includes(days[dayOfWeek])){
       const nextTime = new Date(now.setHours(hours, minutes, 0, 0));
-      console.log('Next Time: '+nextTime)
+      now = new Date();
       if(now <= nextTime){
+        console.log(now)
+        console.log(nextTime)
+        console.log(hours)
+        console.log(minutes)
+        console.log('============')
         return nextTime
       }
     }
@@ -99,7 +105,6 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
     const nextWeek = new Date(now);
     nextWeek.setDate(now.getDate() + 7);
     nextWeek.setHours(hours, minutes, 0, 0);
-    console.log('Next Week: '+nextWeek)
     return nextWeek;
   }
 
@@ -134,7 +139,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   }
 
   const editOrderPress = () => {
-    navigate('/providerHomePage', { state: { dishInfo: dish } })
+    navigate('/providerHomePage', { state: { dishInfo: dish, itemInfo: item } })
   }
   
   if(isCancel){

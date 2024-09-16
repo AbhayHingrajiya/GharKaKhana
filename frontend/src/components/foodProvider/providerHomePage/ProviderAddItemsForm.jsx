@@ -6,6 +6,7 @@ import {useNavigate, useLocation} from 'react-router-dom';
 const ProviderAddItemsForm = () => {
   const location = useLocation();
     const dishData = location.state?.dishInfo;
+    const itemData = location.state?.itemInfo;
     const [isOrderAnyTime, setIsOrderAnyTime] = useState(false);
     const [isDeliveryAnyTime, setIsDeliveryAnyTime] = useState(false);
     const days = ['Everyday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -26,6 +27,7 @@ const ProviderAddItemsForm = () => {
     useEffect(() => {
       if(dishData){
         console.log(dishData)
+        console.log(itemData)
       }
     },[])
 
