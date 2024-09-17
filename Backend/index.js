@@ -6,7 +6,7 @@ import connectMongoDB from './db/connectMongoDB.js'; // Import the MongoDB conne
 import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut } from "./controllers/auth.js";
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
-import { addDish } from './controllers/provider.js';
+import { addDish, getAvailableDishInfo, cancelOrderProvider, getCancelDishInfo } from './controllers/provider.js';
 
 dotenv.config(); // Load environment variables
 
@@ -24,14 +24,23 @@ app.get('/', (req, res) => {
   res.send('API is running...');
 });
 
+//auth.js
 app.post('/api/signUpFoodConsumer', signUpFoodConsumer);
 app.post('/api/signUpFoodProvider', signUpFoodProvider);
 app.post('/api/signUpDeliveryBoy', signUpDeliveryBoy);
 app.post('/api/login', login);
 app.post('/api/signOut', signOut);
+
+//generateToken.js
 app.post('/api/getUserId', getUserId);
 app.post('/api/getMe', getMe);
+
+//provider.js
 app.post('/api/addDish', addDish);
+app.post('/api/getAvailableDishInfo', getAvailableDishInfo);
+app.post('/api/getCancelDishInfo', getCancelDishInfo);
+app.post('/api/cancelOrderProvider', cancelOrderProvider);
+// app.post('/api/cancelOrderProvider', cancelOrderProvider);
 
 
 // Start the server

@@ -28,8 +28,9 @@ const dishInfoSchema = new Schema({
     type: Number,
     required: true
   },
-  dishFlavor: {
-    type: String,
+  dishQuantity: {
+    type: Number,
+    required: true
   },
   orderTill: {
     type: String,
@@ -39,9 +40,13 @@ const dishInfoSchema = new Schema({
     type: String,
     required: true
   },
+  repeat: {
+    type: [String],
+    required: true
+  },
   date: {
     type: Date,
-    default: Date.now
+    default: () => new Date(Date.now() + (5 * 60 * 60 * 1000) + (30 * 60 * 1000))
   }
 });
 
