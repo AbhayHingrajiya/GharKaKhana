@@ -7,6 +7,7 @@ import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signO
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAvailableDishInfo, cancelOrderProvider, getCancelDishInfo } from './controllers/provider.js';
+import { getAdminProviderInfo } from './controllers/admin.js'
 
 dotenv.config(); // Load environment variables
 
@@ -40,7 +41,9 @@ app.post('/api/addDish', addDish);
 app.post('/api/getAvailableDishInfo', getAvailableDishInfo);
 app.post('/api/getCancelDishInfo', getCancelDishInfo);
 app.post('/api/cancelOrderProvider', cancelOrderProvider);
-// app.post('/api/cancelOrderProvider', cancelOrderProvider);
+
+//admin.js
+app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
 
 
 // Start the server

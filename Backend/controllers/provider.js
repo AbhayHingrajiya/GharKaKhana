@@ -1,5 +1,3 @@
-import FoodConsumer from '../models/FoodConsumer.js'; 
-import DeliveryBoy from '../models/deliveryBoy.js'; 
 import FoodProvider from '../models/FoodProvider.js';
 import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
@@ -18,7 +16,8 @@ export const addDish = async (req, res) => {
       orderTill,
       deliveryTill,
       items,
-      repeat
+      repeat,
+      dishId
     } = req.body;
 
     const response = await axios.post('http://localhost:3000/api/getUserId', {}, {
@@ -29,6 +28,62 @@ export const addDish = async (req, res) => {
     if(response.status == 200){
         const providerId = response.data.userId;
 
+        if(dishId){
+          try {
+          // Update the dish info
+          const updatedDish = await DishInfo.findOneAndUpdate(
+            { _id: dishId },  // Find the dish by dishId
+            {
+              $set: {
+                providerId,
+                dishName,
+                address,
+                cityName,
+                pincode,
+                dishPrice,
+                dishQuantity,
+                orderTill,
+                deliveryTill,
+                repeat
+              }
+            },
+            { new: true } // Return the updated document
+          );
+      
+          if (!updatedDish) {
+            return res.status(404).json({ message: 'Dish not found' });
+          }
+
+          await ItemDetails.deleteMany({ dishId });
+          await DishStatus.deleteOne({ dishId });
+          
+          const newDishStatus = new DishStatus({
+            dishId: dishId,
+            providerId,
+            availableQuantity: dishQuantity,
+          });
+    
+          const savedDishStatus = await newDishStatus.save();
+  
+          const itemDetailsArray = items.map(item => ({
+            dishId: dishId, // Link to the saved dish
+            itemName: item.itemName,
+            itemQuantity: item.itemQuantity,
+            itemFlavor: item.itemFlavor
+          }));
+    
+          const savedItems = await ItemDetails.insertMany(itemDetailsArray);
+      
+          res.status(200).json({
+            dish: updatedDish,
+            items: savedItems,
+            status: savedDishStatus
+          });
+        } catch (err) {
+          console.error('Error updating dish info:', err);
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      }else{
         // Create a new dish info document
         const newDish = new DishInfo({
         providerId,
@@ -69,6 +124,7 @@ export const addDish = async (req, res) => {
           items: savedItems,
           status: savedDishStatus
         });
+      }
     }
   } catch (error) {
     console.error('Error adding dish:', error);
@@ -97,7 +153,7 @@ export const getAvailableDishInfo = async (req, res) => {
         
         const availableDishes = await Promise.all(
           availableDish.map(async ({ dishId, availableQuantity }) => {
-            const dishInfo = await DishInfo.findOne({ _id: dishId }).select('-address -cityName -pincode -dishQuantity');
+            const dishInfo = await DishInfo.findOne({ _id: dishId });
             const itemInfo = await ItemDetails.find({ dishId: dishId });
             
             return { dishInfo, itemInfo, availableQuantity };

@@ -26,8 +26,34 @@ const ProviderAddItemsForm = () => {
 
     useEffect(() => {
       if(dishData){
-        console.log(dishData)
-        console.log(itemData)
+        setFormData({
+          dishName: dishData.dishName,
+          address: dishData.address,
+          dishPrice: dishData.dishPrice,
+          dishQuantity: dishData.dishQuantity,
+          orderTill: dishData.orderTill,
+          deliveryTill: dishData.deliveryTill,
+          cityName: dishData.cityName,
+          pincode: dishData.pincode
+        });
+        if(dishData.orderTill == 'any'){
+          setIsOrderAnyTime(true);
+        }
+        if(dishData.deliveryTill == 'any'){
+          setIsDeliveryAnyTime(true);
+        }
+        for(let i=0;i<itemData.length-1;i++){
+          addNewItem();
+        }
+        const itemName = document.getElementsByName('itemName');
+        const itemQuantity = document.getElementsByName('itemQuantity');
+        const itemFlavor = document.getElementsByName('itemFlavor');
+        for(let i=0;i<itemData.length;i++){
+          itemName[i].value = itemData[i].itemName
+          itemQuantity[i].value = itemData[i].itemQuantity
+          itemFlavor[i].value = itemData[i].itemFlavor
+        }
+        setSelectedDays(dishData.repeat)
       }
     },[])
 
@@ -186,12 +212,14 @@ const ProviderAddItemsForm = () => {
           });
       }
       if (validateForm()) {
+        const dishId = ( dishData ) ? dishData._id : false;
         const updatedFormData = {
           ...formData,
           deliveryTill: isDeliveryAnyTime ? 'any' : formData.deliveryTill,
           orderTill: isOrderAnyTime ? 'any' : formData.orderTill,
           items: itemDetailsArray,
-          repeat: selectedDays
+          repeat: selectedDays,
+          dishId: dishId
         };
         setFormData(updatedFormData);
         try{

@@ -8,42 +8,46 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCancel, setIsCancel] = useState(false);
-  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any') ? useState (false) :
+  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any' || !theme) ? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.deliveryTill)
    );
-  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery ) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
+  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery && theme ) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
   
-  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any')? useState (false) :
+  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any' || !theme)? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.orderTill)
    );
-  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
+  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder && theme ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
   
   const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeftDelivery(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill));
-      if(!timeLeftDelivery){
-        console.log('delivery time expire')
-        clearInterval(timer);
-      }
-    }, 1000);
+    if(timeLeftDelivery){
+      const timer = setInterval(() => {
+        setTimeLeftDelivery(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill));
+        if(!timeLeftDelivery){
+          console.log('delivery time expire')
+          clearInterval(timer);
+        }
+      }, 1000);
 
-    return () => clearInterval(timer);
+      return () => clearInterval(timer);
+    }
   }, [expireDateDelivery]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeftOrder(getFormattedTimeLeft(expireDateOrder, dish.orderTill));
-      if(!timeLeftOrder){
-        console.log('Order time expire')
-        clearInterval(timer);
-      }
-    }, 1000);
+    if(timeLeftOrder){
+      const timer = setInterval(() => {
+        setTimeLeftOrder(getFormattedTimeLeft(expireDateOrder, dish.orderTill));
+        if(!timeLeftOrder){
+          console.log('Order time expire')
+          clearInterval(timer);
+        }
+      }, 1000);
 
-    return () => clearInterval(timer);
+      return () => clearInterval(timer);
+    }
   }, [expireDateOrder]);
 
   const handleToggleExpand = () => {
@@ -82,11 +86,6 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
       const nextTime = new Date(now.setHours(hours, minutes, 0, 0));
       now = new Date();
       if(now <= nextTime){
-        console.log(now)
-        console.log(nextTime)
-        console.log(hours)
-        console.log(minutes)
-        console.log('============')
         return nextTime
       }
     }
@@ -118,7 +117,12 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   
     if (addedDateTime < currentTime) {
       if(new Date(addedDate) < addedDateTime) {
-        if(dish.repeat.length>0) return checkForRepeat(hours, minutes) 
+        if(dish.repeat.length>0) return checkForRepeat(hours, minutes);
+        const deleteCardFromDatabase = async () => {
+          const res = await axios.post('/api/cancelOrderProvider', { dishId: dish._id });
+          console.log(res.data);
+        }
+        deleteCardFromDatabase();
         return false;
       }
       addedDateTime.setDate(addedDateTime.getDate() + 1);
