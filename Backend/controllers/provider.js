@@ -242,7 +242,7 @@ export const getCancelDishInfo = async (req, res) => {
         
         const cancelDishes = await Promise.all(
           cancelDish.map(async ({ dishId, cancelQuantity }) => {
-            const dishInfo = await DishInfo.findOne({ _id: dishId }).select('-address -cityName -pincode -dishQuantity');
+            const dishInfo = await DishInfo.findOne({ _id: dishId });
             const itemInfo = await ItemDetails.find({ dishId: dishId });
             
             return { dishInfo, itemInfo, cancelQuantity };
