@@ -8,17 +8,17 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCancel, setIsCancel] = useState(false);
-  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any') ? useState (false) :
+  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any' || !theme) ? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.deliveryTill)
    );
-  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery ) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
+  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery || theme) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
   
-  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any')? useState (false) :
+  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any' || !theme)? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.orderTill)
    );
-  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
+  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder || theme) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
   
   const [showMenu, setShowMenu] = useState(false);
 
