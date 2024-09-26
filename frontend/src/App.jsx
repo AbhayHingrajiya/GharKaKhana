@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from './redux/auth/auth';
 import SignUp from "./components/signUp/SignUp";
 import ProviderHomePage from "./components/foodProvider/providerHomePage/providerHome";
+import AdminDashboard from './components/admin/AdminDashboard';
 import ProviderOrderList from "./components/foodProvider/providerOrderList/ProviderOrderList";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ClimbingBoxLoader } from "react-spinners";
@@ -68,6 +69,7 @@ function App() {
                                   <Login />
                                 )
                               } />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/providerHomePage" element={isLogedIn ? <ProviderHomePage /> : <Login />} />
