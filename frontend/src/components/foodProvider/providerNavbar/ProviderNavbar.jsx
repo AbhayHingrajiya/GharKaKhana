@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import fullLogo from '../../../assets/titalLogo.png';
+import fullLogo from '../../../assets/logoBlack.png';
 import axios from "axios";
 import {useNavigate} from 'react-router-dom';
 import { useDispatch } from 'react-redux';

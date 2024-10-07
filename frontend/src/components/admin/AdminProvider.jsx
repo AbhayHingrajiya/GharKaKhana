@@ -8,8 +8,6 @@ const AdminProvider = () => {
     const [expandedProviderId, setExpandedProviderId] = useState(null);
     const [expandedDishId, setExpandedDishId] = useState(null);
     const [providersData, setProvidersData] = useState(null);
-    
-    // Filter states
     const [cityNameFilter, setCityNameFilter] = useState('');
     const [pincodeFilter, setPincodeFilter] = useState('');
     const [providerEmailFilter, setProviderEmailFilter] = useState('');
@@ -84,6 +82,8 @@ const AdminProvider = () => {
         // Return the provider with only the filtered dishes and if email matches
         return emailMatch ? { ...provider, dishes: filteredDishes } : null;
     }).filter(provider => provider && provider.dishes.length > 0) : [];
+    
+    const totalDishes = filteredProviders.reduce((acc, provider) => acc + provider.dishes.length, 0);
 
     if (!providersData) {
         return (
@@ -132,6 +132,20 @@ const AdminProvider = () => {
                     <option value="unavailable">Unavailable</option>
                 </select>
             </div>
+
+            <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="bg-gray-100 p-4 rounded-lg shadow-lg mb-4 flex items-center justify-between"
+            >
+                <div className="text-lg font-bold">
+                    Total Providers: {filteredProviders.length}
+                </div>
+                <div className="text-lg font-bold">
+                    Total Dishes: {filteredProviders.reduce((sum, provider) => sum + provider.dishes.length, 0)}
+                </div>
+            </motion.div>
 
             {/* Providers Section */}
             {filteredProviders.map((provider) => (

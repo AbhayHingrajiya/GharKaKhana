@@ -4,7 +4,7 @@ import { FaEllipsisV } from 'react-icons/fa';
 import {useNavigate, useLocation} from 'react-router-dom';
 import axios from 'axios';
 
-const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) => {
+const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, userType, addToOrder }) => {
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCancel, setIsCancel] = useState(false);
@@ -21,6 +21,18 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
   const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder && theme ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
   
   const [showMenu, setShowMenu] = useState(false);
+
+  const [count, setCount] = useState(1);
+
+  const incrementCount = () => {
+    setCount(prevCount => prevCount + 1);
+  };
+
+  const decrementCount = () => {
+    if (count > 1) {
+      setCount(prevCount => prevCount - 1);
+    }
+  };
 
   useEffect(() => {
     if(timeLeftDelivery){
@@ -152,17 +164,17 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
 
   return (
     <motion.div
-  className={`relative max-w-lg mx-auto rounded-lg shadow-lg overflow-hidden transition-transform duration-300 ${theme ? 'bg-green-100' : 'bg-red-100'}`}
-  whileHover={{
-    scale: 1.03,
-    boxShadow: `0 10px 20px rgba(${theme ? '0, 128, 0' : '255, 0, 0'}, 0.3)`,
-    backgroundColor: `${theme ? '#e6f7e9' : '#fce4e4'}`,
-  }}
-  initial={{ opacity: 0, y: 50 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ type: 'spring', stiffness: 100 }}
->
-  <div className="relative">
+    className={`relative max-w-lg mx-auto rounded-lg shadow-lg overflow-hidden transition-transform duration-300 ${theme ? 'bg-green-100' : 'bg-red-100'}`}
+    whileHover={{
+      scale: 1.03,
+      boxShadow: `0 10px 20px rgba(${theme ? '0, 128, 0' : '255, 0, 0'}, 0.3)`,
+      backgroundColor: `${theme ? '#e6f7e9' : '#fce4e4'}`,
+    }}
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    // transition={{ type: 'spring', stiffness: 100 }}
+  >
+  {userType != 'consumer' && (<div className="relative">
     <button
       onClick={handleMenuToggle}
       className={`absolute top-1 right-1 p-2 rounded-full focus:outline-none z-10 ${theme ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
@@ -191,7 +203,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
         </button>
       </motion.div>
     )}
-  </div>
+  </div>)}
 
   <div className="relative flex flex-col lg:flex-row">
     <motion.div className="relative lg:w-1/2">
@@ -246,6 +258,29 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv }) =
       </motion.button>
     </div>
   </div>
+
+  {(userType == 'consumer' && <div className="flex items-center justify-between ">
+    <div className="flex items-center m-2 space-x-4">
+      <button
+        onClick={decrementCount}
+        className="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300"
+      >
+        -
+      </button>
+      <span className="text-lg font-semibold">{count}</span>
+      <button
+        onClick={incrementCount}
+        className="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300"
+      >
+        +
+      </button>
+    </div>
+
+    <button className="bg-green-600 m-2 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200"
+    onClick={() => addToOrder(dish, count)}>
+      Add Order
+    </button>
+  </div>)}
 
   <motion.div
     initial={{ height: 0, opacity: 0 }}

@@ -8,6 +8,7 @@ import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAvailableDishInfo, cancelOrderProvider, getCancelDishInfo } from './controllers/provider.js';
 import { getAdminProviderInfo } from './controllers/admin.js'
+import { consumerGetDishInfo } from './controllers/consumer.js'
 
 dotenv.config(); // Load environment variables
 
@@ -41,6 +42,9 @@ app.post('/api/addDish', addDish);
 app.post('/api/getAvailableDishInfo', getAvailableDishInfo);
 app.post('/api/getCancelDishInfo', getCancelDishInfo);
 app.post('/api/cancelOrderProvider', cancelOrderProvider);
+
+//consumer.js
+app.post('/api/consumerGetDishInfo', consumerGetDishInfo)
 
 //admin.js
 app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
