@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import fullLogo from '../../../assets/logoBlack.png';
+import fullLogo from '../../assets/logoBlack.png';
 import axios from "axios";
 import {useNavigate} from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { logout } from '../../../redux/auth/auth';
+import { logout } from '../../redux/auth/auth';
 
 const ProviderNavbar = ( {activeLink} ) => {
   const navigate = useNavigate();

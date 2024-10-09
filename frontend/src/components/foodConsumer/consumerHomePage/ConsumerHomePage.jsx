@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaSearch, FaStar } from 'react-icons/fa';
-import Navbar from '../../foodProvider/providerNavbar/ProviderNavbar';
-import ProviderDishCard from '../../foodProvider/providerOrderList/ProviderDishCard';
+import Navbar from '../../navbar/Navbar';
+import DishCard from '../../dishCard/DishCard';
 import axios from 'axios';
+import ConsumerConfirmOrderPage from '../consumerConfirmOrderPage/ConsumerConfirmOrderPage'
 
 const ConsumerHomePage = () => {
   const [allDishes, setAllDishes] = useState(undefined);
-  const [orderInfo, setOrderInfo] = useState([]); // For storing ordered dish info
+  const [orderInfo, setOrderInfo] = useState([]);
+  const [moveToConsumerConfirmOrderPage, setMoveToConsumerConfirmOrderPage ] = useState(false);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -96,8 +98,26 @@ const ConsumerHomePage = () => {
     );
   };  
 
-  const placeOrder = () => {
-    console.log('place Order click')
+  const moveToConsumerConfirmOrderPageChange = () => {
+    // Loop through each dish in orderDish
+    orderInfo.forEach(order => {
+      // Find the corresponding dish info in allDish
+      const foundDish = allDishes.find(dish => dish.dishInfo._id === order.dish._id);
+      
+      // If found, add itemInfo to the order
+      if (foundDish) {
+          order.itemInfo = foundDish.itemInfo;
+      }
+    });
+
+    console.log(orderInfo);
+    setMoveToConsumerConfirmOrderPage(!moveToConsumerConfirmOrderPage)
+  }
+
+  if(moveToConsumerConfirmOrderPage){
+    return (
+      <ConsumerConfirmOrderPage orderInfo={orderInfo} moveToConsumerConfirmOrderPageChangeFun={moveToConsumerConfirmOrderPageChange} />
+    )
   }
 
   return (
@@ -158,7 +178,7 @@ const ConsumerHomePage = () => {
       <div className="flex flex-wrap gap-4">
         {allDishes && (
           allDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (
-            <ProviderDishCard
+            <DishCard
               key={index}
               dish={dishInfo}
               item={itemInfo}
@@ -174,24 +194,24 @@ const ConsumerHomePage = () => {
       {/* Order Info Div */}
       {orderInfo.length > 0 && (
         <motion.div
-          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg shadow-lg p-4 max-h-[300px] overflow-y-auto"
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg shadow-lg p-4 max-h-[200px] overflow-y-auto"
           initial={{ y: 100 }}
           animate={{ y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-lg font-semibold">Order Info</h2>
           <div className="flex flex-col space-y-2">
-            {orderInfo.map(({ dish, quantity }) => (
-              <div key={dish._id} className="flex justify-between items-center p-2 border-b">
-                <span>{dish.dishName}</span>
-                <span>{dish.dishPrice * quantity} RS</span>
-                <div className="flex items-center">
-                  <button onClick={() => decreaseQuantity(dish._id)} className="bg-gray-200 px-2 py-1 rounded">-</button>
-                  <span className="mx-2">{quantity}</span>
-                  <button onClick={() => increaseQuantity(dish._id)} className="bg-gray-200 px-2 py-1 rounded">+</button>
-                </div>
+          {orderInfo.map(({ dish, quantity }) => (
+            <div key={dish._id} className="flex justify-between items-center p-2 border-b">
+              <span className="w-1/3">{dish.dishName}</span>
+              <span className="w-1/3 text-center">{dish.dishPrice * quantity} RS</span>
+              <div className="flex items-center w-1/3 justify-end">
+                <button onClick={() => decreaseQuantity(dish._id)} className="bg-gray-200 px-2 py-1 rounded">-</button>
+                <span className="mx-2">{quantity}</span>
+                <button onClick={() => increaseQuantity(dish._id)} className="bg-gray-200 px-2 py-1 rounded">+</button>
               </div>
-            ))}
+            </div>
+          ))}
           </div>
           <div className="flex justify-between items-center mt-4">
             <span className="font-semibold">
@@ -199,7 +219,7 @@ const ConsumerHomePage = () => {
             </span>
             <button
               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200"
-              onClick={() => placeOrder()} // Assuming you have a placeOrder function defined
+              onClick={() => moveToConsumerConfirmOrderPageChange()}
             >
               Place Order
             </button>
