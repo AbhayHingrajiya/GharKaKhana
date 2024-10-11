@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import ProviderDishCard from './ProviderDishCard';
+import DishCard from '../../dishCard/DishCard';
 import ProviderExpandableDiv from './ProviderExpandableDiv';
-import Navbar from '../providerNavbar/ProviderNavbar';
+import Navbar from '../../navbar/Navbar';
 import axios from 'axios';
 import { ClimbingBoxLoader } from "react-spinners";
 
@@ -92,7 +92,7 @@ const ProviderOrderList = () => {
         <ProviderExpandableDiv title="Current Orders" defaultExpand={false} theme={true}>
           <div className="flex flex-wrap gap-4">
             {validDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (
-              <ProviderDishCard
+              <DishCard
                 key={index}
                 dish={dishInfo}
                 item={itemInfo}
@@ -111,7 +111,7 @@ const ProviderOrderList = () => {
         <ProviderExpandableDiv title="Cancel Orders" defaultExpand={false} theme={false}>
           <div className="flex flex-wrap gap-4">
             {cancelDishes.map(({ dishInfo, itemInfo, cancelQuantity }, index) => (
-              <ProviderDishCard
+              <DishCard
                 key={index}
                 dish={dishInfo}
                 item={itemInfo}

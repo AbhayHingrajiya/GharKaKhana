@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import ProviderNavbar from '../providerNavbar/ProviderNavbar'
-import test from '../../../assets/test.jpg'
+import Navbar from '../../navbar/Navbar'
 import { motion } from 'framer-motion';
 import ProviderAddItemsForm from './ProviderAddItemsForm';
 import { useDispatch, useSelector } from 'react-redux';
@@ -50,7 +49,7 @@ const ProviderHomePage = () => {
 
   return (
     <div>
-        <ProviderNavbar activeLink='home' />
+        <Navbar activeLink='home' />
         <div className='p-8'>
             <section className="bg-gray-800 text-white text-center py-16 px-6">
                 <div className="max-w-2xl mx-auto">

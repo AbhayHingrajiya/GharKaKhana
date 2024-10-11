@@ -10,6 +10,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ProviderOrderList from "./components/foodProvider/providerOrderList/ProviderOrderList";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ClimbingBoxLoader } from "react-spinners";
+import ConsumerHomePage from './components/foodConsumer/consumerHomePage/ConsumerHomePage';
+import ConsumerConfirmOrderPage from './components/foodConsumer/consumerConfirmOrderPage/ConsumerConfirmOrderPage';
 
 function App() {
   const user = useSelector((state) => state.user);
@@ -74,6 +76,8 @@ function App() {
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/providerHomePage" element={isLogedIn ? <ProviderHomePage /> : <Login />} />
         <Route path="/providerOrderList" element={isLogedIn ? <ProviderOrderList /> : <Login />} />
+        <Route path="/consumerHomePage" element={isLogedIn ? <ConsumerHomePage /> : <Login />} />
+        <Route path="/consumerConfirmOrderPage" element={<ConsumerConfirmOrderPage />} />
       </Routes>
     </Router>
   );
