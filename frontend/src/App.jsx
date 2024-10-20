@@ -5,7 +5,7 @@ import Login from "./components/login/Login";
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from './redux/auth/auth';
 import SignUp from "./components/signUp/SignUp";
-import ProviderHomePage from "./components/foodProvider/providerHomePage/providerHome";
+import ProviderHomePage from "./components/foodProvider/providerHomePage/ProviderHome";
 import AdminDashboard from './components/admin/AdminDashboard';
 import ProviderOrderList from "./components/foodProvider/providerOrderList/ProviderOrderList";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
@@ -61,8 +61,8 @@ function App() {
       <Routes>
         <Route path="/" element={!isLogedIn ? (
                                   <Login />
-                                // ) : userType == 'foodConsumer' ? (
-                                //   <ConsumerHomePage />
+                                ) : userType == 'foodConsumer' ? (
+                                  <ConsumerHomePage />
                                 // ) : userType == 'deliveryBoy' ? (
                                 //   <DeliveryHomePage />
                                 ) : userType == 'foodProvider' ? (
@@ -77,7 +77,6 @@ function App() {
         <Route path="/providerHomePage" element={isLogedIn ? <ProviderHomePage /> : <Login />} />
         <Route path="/providerOrderList" element={isLogedIn ? <ProviderOrderList /> : <Login />} />
         <Route path="/consumerHomePage" element={isLogedIn ? <ConsumerHomePage /> : <Login />} />
-        <Route path="/consumerConfirmOrderPage" element={<ConsumerConfirmOrderPage />} />
       </Routes>
     </Router>
   );

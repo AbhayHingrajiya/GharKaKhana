@@ -6,26 +6,27 @@ import axios from 'axios';
 
 const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, userType, addToOrder }) => {
   const navigate = useNavigate();
+  const [themeFlag, changeThemeFlag] = useState(theme)
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCancel, setIsCancel] = useState(false);
-  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any' || !theme) ? useState (false) :
+  const [expireDateDelivery, setExpireDateDelivery] = ( dish.deliveryTill == 'any' || !themeFlag) ? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.deliveryTill)
    );
-  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery && theme ) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
+  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery && themeFlag ) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
   
-  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any' || !theme)? useState (false) :
+  const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any' || !themeFlag) ? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.orderTill)
    );
-  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder && theme ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
+  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder && themeFlag ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
   
   const [showMenu, setShowMenu] = useState(false);
 
   const [count, setCount] = useState(1);
 
   const incrementCount = () => {
-    setCount(prevCount => prevCount + 1);
+    if(Quantity > count) setCount(prevCount => prevCount + 1);
   };
 
   const decrementCount = () => {
@@ -126,13 +127,15 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     addedDateTime.setHours(hours, minutes, 0, 0);
   
     const currentTime = new Date();
-  
     if (addedDateTime < currentTime) {
-      if(new Date(addedDate) < addedDateTime) {
+      const addedDT = new Date(addedDate);
+      addedDT.setHours(addedDT.getHours() - 6);
+      addedDT.setMinutes(addedDT.getMinutes() + 30);
+      if(addedDT < addedDateTime) {
         if(dish.repeat.length>0) return checkForRepeat(hours, minutes);
         const deleteCardFromDatabase = async () => {
           const res = await axios.post('/api/cancelOrderProvider', { dishId: dish._id });
-          console.log(res.data);
+          if(res) changeThemeFlag(false);
         }
         deleteCardFromDatabase();
         return false;
@@ -164,11 +167,11 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
 
   return (
     <motion.div
-    className={`relative max-w-lg mx-auto rounded-lg shadow-lg overflow-hidden transition-transform duration-300 ${theme ? 'bg-green-100' : 'bg-red-100'}`}
+    className={`relative max-w-lg mx-auto rounded-lg shadow-lg overflow-hidden transition-transform duration-300 ${themeFlag ? 'bg-green-100' : 'bg-red-100'}`}
     whileHover={{
       scale: 1.03,
-      boxShadow: `0 10px 20px rgba(${theme ? '0, 128, 0' : '255, 0, 0'}, 0.3)`,
-      backgroundColor: `${theme ? '#e6f7e9' : '#fce4e4'}`,
+      boxShadow: `0 10px 20px rgba(${themeFlag ? '0, 128, 0' : '255, 0, 0'}, 0.3)`,
+      backgroundColor: `${themeFlag ? '#e6f7e9' : '#fce4e4'}`,
     }}
     initial={{ opacity: 0, y: 50 }}
     animate={{ opacity: 1, y: 0 }}
@@ -177,19 +180,19 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
   {userType != 'consumer' && (<div className="relative">
     <button
       onClick={handleMenuToggle}
-      className={`absolute top-1 right-1 p-2 rounded-full focus:outline-none z-10 ${theme ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+      className={`absolute top-1 right-1 p-2 rounded-full focus:outline-none z-10 ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
     >
       <FaEllipsisV />
     </button>
 
     {showMenu && (
       <motion.div
-        className={`absolute top-10 right-2 border rounded-lg shadow-lg w-48 z-20 ${theme ? 'bg-white border-green-300' : 'bg-white border-red-300'}`}
+        className={`absolute top-10 right-2 border rounded-lg shadow-lg w-48 z-20 ${themeFlag ? 'bg-white border-green-300' : 'bg-white border-red-300'}`}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {theme && (<button
+        {themeFlag && (<button
           className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
           onClick={() => cancelOrderPress()}
         >
@@ -215,17 +218,17 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.3 }}
       />
-      <div className={`absolute top-2 left-2 px-3 py-1 rounded-lg text-sm ${theme ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+      <div className={`absolute top-2 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
         Delivery Till: {timeLeftDelivery ? timeLeftDelivery : 'None'}
       </div>
-      <div className={`absolute top-10 left-2 px-3 py-1 rounded-lg text-sm ${theme ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+      <div className={`absolute top-10 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
         Order Till: {timeLeftOrder ? timeLeftOrder : 'None'}
       </div>
     </motion.div>
 
     <div className="p-4 lg:p-5 lg:w-1/2 flex flex-col justify-between">
       <motion.h2
-        className={`text-2xl font-bold mt-3 mb-2 ${theme ? 'text-green-800' : 'text-red-800'}`}
+        className={`text-2xl font-bold mt-3 mb-2 ${themeFlag ? 'text-green-800' : 'text-red-800'}`}
         initial={{ x: -50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -251,7 +254,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
 
       <motion.button
         onClick={handleToggleExpand}
-        className={`py-2 px-6 rounded-lg hover:bg-opacity-80 transition-colors duration-200 ${theme ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'}`}
+        className={`py-2 px-6 rounded-lg hover:bg-opacity-80 transition-colors duration-200 ${themeFlag ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-red-600 text-white hover:bg-red-700'}`}
         whileTap={{ scale: 0.95 }}
       >
         {isExpanded ? 'Less Info' : 'More Info'}
@@ -259,7 +262,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     </div>
   </div>
 
-  {(userType == 'consumer' && <div className="flex items-center justify-between ">
+  {(userType == 'consumer' && themeFlag && <div className="flex items-center justify-between ">
     <div className="flex items-center m-2 space-x-4">
       <button
         onClick={decrementCount}
@@ -286,16 +289,16 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     initial={{ height: 0, opacity: 0 }}
     animate={{ height: isExpanded ? 'auto' : 0, opacity: isExpanded ? 1 : 0 }}
     transition={{ height: { duration: 0.4 }, opacity: { duration: 0.4 } }}
-    className={`overflow-hidden p-4 ${theme ? 'bg-green-200' : 'bg-red-200'}`}
+    className={`overflow-hidden p-4 ${themeFlag ? 'bg-green-200' : 'bg-red-200'}`}
   >
     <div className="text-gray-700">
-      <h3 className={`text-xl font-semibold ${theme ? 'text-green-900' : 'text-red-900'} mb-2`}>
+      <h3 className={`text-xl font-semibold ${themeFlag ? 'text-green-900' : 'text-red-900'} mb-2`}>
         Item Details:
       </h3>
       {item.map((items, index) => (
         <motion.div
           key={index}
-          className={`p-4 mb-2 border rounded-lg shadow-sm ${theme ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
+          className={`p-4 mb-2 border rounded-lg shadow-sm ${themeFlag ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -318,7 +321,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
       ))}
 
       <motion.div
-        className={`text-sm mt-4 ${theme ? 'text-green-900' : 'text-red-900'}`}
+        className={`text-sm mt-4 ${themeFlag ? 'text-green-900' : 'text-red-900'}`}
         initial={{ x: -30, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}

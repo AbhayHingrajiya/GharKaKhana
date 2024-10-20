@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orderInfo}) => {
 
-  const defaultAddresses = [
-    "123, MG Road, Bangalore - 560001",
-    "Flat 45B, Whitefield, Bangalore - 560066",
-    "Plot 18, Electronic City, Bangalore - 560100",
-  ];
-
-  const [addresses, setAddresses] = useState(defaultAddresses);
+  const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
-  const [newAddress, setNewAddress] = useState('');
   const [addingAddress, setAddingAddress] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
 
   const totalAmount = orderInfo.reduce((total, item) => total + item.dish.dishPrice * item.quantity, 0);
-  const gst = (totalAmount * 0.18).toFixed(2);
+  let gst = (totalAmount * 0.18).toFixed(2);
   const deliveryCharge = 50;
 
   const handleAddressChange = (address) => {
@@ -31,16 +25,59 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orde
     window.scrollTo({
         top: 0
     });
+
+    ( async () => {
+      try{
+        const res = await axios.post('/api/getConsumerAddress');
+        if(res.status == 200){
+          console.log(res.data);
+          setAddresses(res.data)
+        }else{
+          console.error("can't get res in getConsumerAddress");
+        }
+      }catch(err){
+        console.error('get error at getConsumerAdddress at frontend side: '+err);
+      }
+
+    })();
   }, [])
 
-  const addNewAddress = () => {
-    if (newAddress.trim()) {
-      setAddresses([...addresses, newAddress]);
-      setSelectedAddress(newAddress);
-      setNewAddress('');
-      setAddingAddress(false);
+  const addNewAddress = async () => {
+    try{
+      const address = document.getElementById('newAddress').value;
+      const cityName = document.getElementById('newCityname').value;
+      const pincode = document.getElementById('newPincode').value;
+      const fullAddress = address + ', ' + cityName + ', ' + pincode;
+      const res = await axios.post('/api/addNewAddress', {fullAddress});
+      if(res.status == 200){
+        setAddresses((addr) => [
+          ...addr,
+          fullAddress
+        ]);
+        setAddingAddress(false);
+      }else{
+        console.error('Error in get res in addNewAddress at frontend side')
+      }
+    }catch (error){
+      console.error('Error in addNewAddress in fronend side: '+error);
     }
   };
+
+  const confirmPlaceOrder = async () => {
+    gst = parseFloat(gst)
+    console.log(orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge)
+    try{
+      const res = await axios.post('/api/addNewOrder', { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge });
+      if(res.status == 201){
+        alert('Order pacle successsfully');
+        moveToConsumerConfirmOrderPageChangeFun();
+      }else{
+        console.error('Error in addNewOrder method in frontend side')
+      }
+    }catch(err) {
+      console.error('Error at confirmPlaceOrder at frontend side: '+err);
+    }
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -100,13 +137,42 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orde
           {/* New Address Input */}
           {addingAddress && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2">
-              <input
-                type="text"
-                placeholder="Enter new address"
-                value={newAddress}
-                onChange={(e) => setNewAddress(e.target.value)}
-                className="w-full border border-gray-300 rounded-md p-2"
-              />
+              <div className="flex gap-4 w-full">
+                
+                {/* Address Column */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }} 
+                  className="w-2/3"
+                >
+                  <textarea
+                    id='newAddress'
+                    placeholder="Enter new address"
+                    className="w-full border border-gray-300 rounded-md h-[100px] p-2"
+                  />
+
+                </motion.div>
+
+                {/* Pincode and City Name Column */}
+                <motion.div 
+                  whileHover={{ scale: 1.02 }} 
+                  className="w-1/3 space-y-4"
+                >
+                  <input
+                    type="text"
+                    id='newCityname'
+                    placeholder="Enter city name"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                  />
+                  <input
+                    type="text"
+                    id='newPincode'
+                    placeholder="Enter pincode"
+                    className="w-full border border-gray-300 rounded-md p-2"
+                  />
+                </motion.div>
+
+              </div>
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200"
@@ -186,6 +252,7 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orde
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200"
+            onClick={confirmPlaceOrder}
         >
             Place Order
         </motion.button>

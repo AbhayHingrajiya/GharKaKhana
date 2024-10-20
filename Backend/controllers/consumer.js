@@ -1,8 +1,9 @@
-import FoodProvider from '../models/FoodProvider.js';
+import FoodConsumer from '../models/FoodConsumer.js';
+import OrderInfo from '../models/OrderInfo.js';
 import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
 import DishStatus from '../models/DishStatus.js';
-import axios from 'axios';
+import { io } from '../index.js';
 
 export const consumerGetDishInfo = async (req, res) => {
     const { cityName, postcode} = req.body;
@@ -45,3 +46,97 @@ export const consumerGetDishInfo = async (req, res) => {
         return res.status(404).json({ message: 'Dish not found' });
     }
 };
+
+export const getConsumerAddress = async (req, res) => {
+
+  try{
+    const consumerId = req.userId;
+
+    const consumer = await FoodConsumer.findById(consumerId, { address: 1 });
+
+    return res.status(200).json(consumer.address);
+
+  }catch(err){
+      console.error('Error at getConsumerAddress at backend: '+err);
+      return res.status(404).json({ message: 'Error at getConsumerAddress at backend' });
+  }
+};
+
+export const addNewAddress = async (req, res) => {
+
+  try{
+    const consumerId = req.userId;
+    const address = req.body.fullAddress;
+
+    await FoodConsumer.findByIdAndUpdate(
+      consumerId,
+      { $push: { address: address } }
+    );
+
+    console.log('new addresss added')
+
+    return res.status(200).json({ message: 'New address added' });
+
+  }catch(err){
+      console.error('Error at addNewAddress at backend: '+err);
+      return res.status(404).json({ message: 'Error at addNewAddress at backend' });
+  }
+};
+
+export const addNewOrder = async (req, res) => {
+  try {
+    const consumerId = req.userId;
+    const { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge } = req.body;
+    
+    const dishInfoMap = new Map();
+    const dishesToUpdate = [];
+    
+    for (const item of orderInfo) {
+      const dishId = item.dish._id;
+      const quantityOrdered = item.quantity;
+      
+      const dish = await DishStatus.findOne({ dishId: item.dish._id });
+      
+      if (!dish || dish.availableQuantity < quantityOrdered) {
+        return res.status(400).json({ message: `Insufficient quantity for dish: ${dishId}` });
+      }
+
+      dishesToUpdate.push({ dish, quantityOrdered });
+      dishInfoMap.set(dishId, (dishInfoMap.get(dishId) || 0) + quantityOrdered);
+    }
+
+    for (const { dish, quantityOrdered } of dishesToUpdate) {
+      const dishInfo = await DishInfo.findById(dish.dishId).populate('providerId');
+      if (!dishInfo) {
+        return res.status(404).json({ message: `DishInfo not found for dishId: ${dish.dishId}` });
+      }
+
+      dish.availableQuantity -= quantityOrdered;
+      dish.pendingQuantity = (dish.pendingQuantity || 0) + quantityOrdered;
+
+      await dish.save();
+      io.to(dishInfo.providerId).emit('newOrder', { dishId: dish.dishId, quantity: quantityOrdered });
+    }
+
+    const newOrder = new OrderInfo({
+      consumerId,
+      dishInfo: Object.fromEntries(dishInfoMap),
+      paymentMethod,
+      consumerAddress: selectedAddress,
+      status: 'pending',
+      dishPrice: totalAmount,
+      gstPrice: gst,
+      deliveryPrice: deliveryCharge,
+      totalPrice: totalAmount + gst + deliveryCharge
+    });
+
+    await newOrder.save();
+
+    return res.status(201).json({ message: 'New order added', orderId: newOrder._id });
+
+  } catch (err) {
+    console.error('Error at addNewOrder at backend: ' + err);
+    return res.status(500).json({ message: 'Error at addNewOrder at backend' });
+  }
+};
+

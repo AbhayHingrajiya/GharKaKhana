@@ -46,7 +46,7 @@ const ConsumerHomePage = () => {
               const res = await axios.post('/api/consumerGetDishInfo', { cityName, postcode });
               console.log(res);
               if (res.data) {
-                setAllDishes(res.data);
+                validateDishes(res.data);
                 console.log(res.data);
               } else {
                 console.log("don't get a response data at consumerGetDishInfo");
@@ -62,6 +62,42 @@ const ConsumerHomePage = () => {
       .catch((error) => {
         console.log('Error fetching address: ' + error);
       });
+  };
+
+  const validateDishes = async (availableDishes) => {
+    // Validate available dishes
+    const validAvailableDishesArray = await Promise.all(
+      availableDishes.map(async ({ dishInfo, itemInfo, availableQuantity }) => {
+        const isValid = await isValidDish(dishInfo); // Check if the dish is valid
+        return isValid ? { dishInfo, itemInfo, availableQuantity } : null;
+      })
+    );
+
+    setAllDishes(validAvailableDishesArray.filter(dish => dish !== null));
+  };
+
+  const isValidDish = async (dishInfo) => {
+    if (dishInfo.repeat.length > 0 || dishInfo.orderTill !== 'any' || dishInfo.deliveryTill !== 'any') {
+      return true;
+    }
+    const currentFullDate = new Date();
+    const dishFullDate = new Date(dishInfo.date);
+  
+    if (
+      currentFullDate.getDate() === dishFullDate.getDate() &&
+      currentFullDate.getMonth() === dishFullDate.getMonth() &&
+      currentFullDate.getFullYear() === dishFullDate.getFullYear()
+    ) {
+      return true;
+    } else {
+      try {
+        const res = await axios.post('/api/cancelOrderProvider', { dishId: dishInfo._id });
+        console.log(res.data);
+      } catch (err) {
+        console.error('Error in expireDish: ' + err);
+      }
+      return false;
+    }
   };
 
   const addToOrder = (dish, count) => {

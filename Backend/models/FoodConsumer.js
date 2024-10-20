@@ -24,6 +24,10 @@ const foodConsumerSchema = new Schema({
     trim: true, // Removes leading and trailing spaces
     match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number'] // Validates a 10-digit phone number format
   },
+  address: {
+    type: [String],
+    default: []
+  },
   password: {
     type: String,
     required: true,
