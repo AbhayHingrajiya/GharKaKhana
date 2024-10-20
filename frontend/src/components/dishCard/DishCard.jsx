@@ -12,21 +12,13 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
    useState(
     calculateExpireDate(dish.date, dish.deliveryTill)
    );
-<<<<<<< HEAD
-  const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery || theme) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
-=======
   const [timeLeftDelivery, setTimeLeftDelivery] = ( expireDateDelivery && theme ) ? useState(getFormattedTimeLeft(expireDateDelivery, dish.deliveryTill)) : useState (false);
->>>>>>> 717e0d6afae8bbb03cc999da3b2786745b6811ac
   
   const [expireDateOrder, setExpireDateOrder] = ( dish.orderTill == 'any' || !theme)? useState (false) :
    useState(
     calculateExpireDate(dish.date, dish.orderTill)
    );
-<<<<<<< HEAD
-  const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder || theme) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
-=======
   const [timeLeftOrder, setTimeLeftOrder] = ( expireDateOrder && theme ) ? useState(getFormattedTimeLeft(expireDateOrder, dish.orderTill)) : useState (false);
->>>>>>> 717e0d6afae8bbb03cc999da3b2786745b6811ac
   
   const [showMenu, setShowMenu] = useState(false);
 
