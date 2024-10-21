@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import fullLogo from '../../assets/logoBlack.png';
 import axios from "axios";
 import {useNavigate} from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/auth/auth';
 
 const ProviderNavbar = ( {activeLink} ) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const signOut = async () =>{
@@ -69,7 +70,7 @@ const ProviderNavbar = ( {activeLink} ) => {
               <a className={`${(activeLink === 'home') 
               ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0' 
               : "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0" }`}
-              onClick={() => {navigate('/providerHomePage')}}>
+              onClick={() => {user.userType == 'foodProvider' ? navigate('/providerHomePage') : navigate('/consumerHomePage') }}>
                 Home
               </a>
             </li>
@@ -77,7 +78,7 @@ const ProviderNavbar = ( {activeLink} ) => {
               <a className={`${(activeLink === 'order') 
               ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0' 
               : "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0" }`}
-              onClick={() => {navigate('/providerOrderList')}}>
+              onClick={() => {user.userType == 'foodProvider' ? navigate('/providerOrderList') : navigate('/consumerOrderList')}}>
                 Orders
               </a>
             </li>

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import {useNavigate, useLocation} from 'react-router-dom';
 
 const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orderInfo}) => {
 
+  const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
   const [addingAddress, setAddingAddress] = useState(false);
@@ -70,7 +72,7 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orde
       const res = await axios.post('/api/addNewOrder', { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge });
       if(res.status == 201){
         alert('Order pacle successsfully');
-        moveToConsumerConfirmOrderPageChangeFun();
+        window.location.reload();
       }else{
         console.error('Error in addNewOrder method in frontend side')
       }

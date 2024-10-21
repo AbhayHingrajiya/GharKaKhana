@@ -158,7 +158,7 @@ const ConsumerHomePage = () => {
 
   return (
     <div className="relative">
-      <Navbar />
+      <Navbar activeLink="home" />
 
       <div className="space-y-16">
         <section className="relative h-[400px] bg-cover bg-center" style={{ backgroundImage: "url('https://via.placeholder.com/1600x400')" }}>

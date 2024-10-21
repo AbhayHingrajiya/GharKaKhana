@@ -223,8 +223,6 @@ export const getAllDishInfoProvider = async (req, res) => {
       completeDishes
     };
 
-    console.log(response);
-
     res.json(response);
   } catch (err) {
     console.error('Error fetching dish info at provider.js:', err);

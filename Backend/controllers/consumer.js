@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import FoodConsumer from '../models/FoodConsumer.js';
 import OrderInfo from '../models/OrderInfo.js';
 import DishInfo from '../models/DishInfo.js';
@@ -115,7 +116,7 @@ export const addNewOrder = async (req, res) => {
       dish.pendingQuantity = (dish.pendingQuantity || 0) + quantityOrdered;
 
       await dish.save();
-      io.to(dishInfo.providerId).emit('newOrder', { dishId: dish.dishId, quantity: quantityOrdered });
+      io.to(String(dishInfo.providerId._id)).emit('newOrder', { dishId: dish.dishId, quantity: quantityOrdered });
     }
 
     const newOrder = new OrderInfo({
@@ -137,6 +138,57 @@ export const addNewOrder = async (req, res) => {
   } catch (err) {
     console.error('Error at addNewOrder at backend: ' + err);
     return res.status(500).json({ message: 'Error at addNewOrder at backend' });
+  }
+};
+
+export const getPendingOrdersConsumer = async (req, res) => {
+  try {
+    const consumerId = req.userId;
+    const orders = await OrderInfo.find({
+      consumerId: consumerId,
+      status: 'pending'
+    });
+
+    const updatedDishInfo = new Map(); // Temporary holder for updated dishInfo
+
+    for (let order of orders) {
+
+      // Check if dishInfo is a Map
+      if (!(order.dishInfo instanceof Map)) {
+        order.dishInfo = new Map(Object.entries(order.dishInfo));
+      }
+
+      for (let [dishId, quantity] of order.dishInfo) {
+
+        // Fetch dish details from DishModule
+        const dishDetails = await DishInfo.findById(dishId);
+        if (!dishDetails) {
+          continue;
+        }
+
+        // Fetch related item details from ItemInfo
+        const itemDetails = await ItemDetails.find({ dishId: dishId });
+        if (!itemDetails || itemDetails.length === 0) {
+          console.log(`No item details found for dishId: ${dishId}`);
+        }
+
+        // Attach the details to the updatedDishInfo map
+        updatedDishInfo.set(dishId, {
+          dishDetails: dishDetails,
+          itemDetails: itemDetails
+        });
+      }
+    }
+
+    // Convert updatedDishInfo Map to an object for easier JSON serialization
+    const updatedDishInfoObject = Object.fromEntries(updatedDishInfo);
+
+    // Send both orders and updatedDishInfo to the client
+    res.json({ orders, updatedDishInfo: updatedDishInfoObject });
+    
+  } catch (error) {
+    console.error('Error fetching or processing orders in getPendingOrdersConsumer at backend side:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 

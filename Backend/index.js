@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import { createServer } from 'http';
+import http from 'http';
 import { Server } from 'socket.io';
 import connectMongoDB from './db/connectMongoDB.js'; // Import the MongoDB connection function
 import { fetchUserIdMiddleware } from './middleware/fetchUserIdMiddleware.js';
@@ -11,7 +11,7 @@ import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAllDishInfoProvider,  cancelOrderProvider } from './controllers/provider.js';
 import { getAdminProviderInfo } from './controllers/admin.js'
-import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder } from './controllers/consumer.js'
+import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer } from './controllers/consumer.js'
 
 dotenv.config(); // Load environment variables
 
@@ -19,8 +19,14 @@ const app = express();
 app.use(cookieParser());
 app.use(cors());
 
-const httpServer = createServer(app); // Use the HTTP server
-const io = new Server(httpServer, { cors: { origin: '*' } });
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*', // Your frontend port
+    methods: ['GET', 'POST'],
+    credentials: true, // Required if your frontend sends cookies
+  },
+});
 
 // Middleware
 app.use(express.json());
@@ -47,17 +53,10 @@ app.post('/api/consumerGetDishInfo', consumerGetDishInfo);
 app.post('/api/getConsumerAddress', fetchUserIdMiddleware, getConsumerAddress);
 app.post('/api/addNewAddress', fetchUserIdMiddleware, addNewAddress);
 app.post('/api/addNewOrder', fetchUserIdMiddleware, addNewOrder);
+app.post('/api/getPendingOrdersConsumer', fetchUserIdMiddleware, getPendingOrdersConsumer);
 
 //admin.js
 app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
-
-
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  connectMongoDB();
-});
 
 // Socket.IO Connection Handler
 io.on('connection', (socket) => {
@@ -76,3 +75,13 @@ io.on('connection', (socket) => {
 });
 
 export { io };
+
+io.listen(4000);
+
+// Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  connectMongoDB();
+});
+
