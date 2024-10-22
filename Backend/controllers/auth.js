@@ -164,8 +164,6 @@ export const login = async (req, res) => {
                       phoneNumber: user.phoneNumber,
                       type: userType.type
                   });
-              } else {
-                  return res.status(401).json({ message: 'Invalid password' });
               }
           }
       }

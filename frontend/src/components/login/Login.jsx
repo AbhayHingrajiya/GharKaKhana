@@ -5,7 +5,6 @@ import logo from '../../assets/fullLogo.jpeg'
 import './Login.css'
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../redux/auth/auth';
-import  pic from '../../assets/test.jpg';
 const LoginForm = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
