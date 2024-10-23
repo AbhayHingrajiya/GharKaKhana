@@ -10,6 +10,7 @@ const ConsumerHomePage = () => {
   const [allDishes, setAllDishes] = useState(undefined);
   const [orderInfo, setOrderInfo] = useState([]);
   const [moveToConsumerConfirmOrderPage, setMoveToConsumerConfirmOrderPage ] = useState(false);
+  const [finalDeliveryTime, setFinalDeliveryTime] = useState({});
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -44,10 +45,8 @@ const ConsumerHomePage = () => {
           (async () => {
             try {
               const res = await axios.post('/api/consumerGetDishInfo', { cityName, postcode });
-              console.log(res);
               if (res.data) {
                 validateDishes(res.data);
-                console.log(res.data);
               } else {
                 console.log("don't get a response data at consumerGetDishInfo");
               }
@@ -100,8 +99,7 @@ const ConsumerHomePage = () => {
     }
   };
 
-  const addToOrder = (dish, count) => {
-    console.log(count)
+  const addToOrder = (dish, count, timeLeftDelivery) => {
     setOrderInfo((prev) => {
       const existingDish = prev.find((item) => item.dish._id === dish._id);
       if (existingDish) {
@@ -111,10 +109,25 @@ const ConsumerHomePage = () => {
       }
       return [...prev, { dish, quantity: count }];
     });
-    console.log(orderInfo)
+    if(timeLeftDelivery){
+      const date = new Date()
+      const [hours, minutes, seconds] = timeLeftDelivery.split(':').map(Number);
+
+      date.setHours(date.getHours() + hours);
+      date.setMinutes(date.getMinutes() + minutes);
+      date.setSeconds(date.getSeconds() + seconds);
+
+      setFinalDeliveryTime(prevState => ({
+        ...prevState,
+        [dish._id]: date
+      }));
+    }
   };
 
   const increaseQuantity = (dishId) => {
+    const foundDish = allDishes.find(dish => dish.dishInfo._id === dishId);
+    const availableQuantity = foundDish ? foundDish.availableQuantity : null;
+
     setOrderInfo((prev) =>
       prev.map((item) =>
         item.dish._id === dishId ? { ...item, quantity: item.quantity + 1 } : item
@@ -123,16 +136,33 @@ const ConsumerHomePage = () => {
   };
 
   const decreaseQuantity = (dishId) => {
-    setOrderInfo((prev) => 
-      prev
-        .map((item) =>
-          item.dish._id === dishId
-            ? { ...item, quantity: Math.max(item.quantity - 1, 0) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };  
+    setOrderInfo((prev) => {
+      let updatedOrderInfo = prev.map((item) =>
+        item.dish._id === dishId
+          ? { ...item, quantity: Math.max(item.quantity - 1, 0) }
+          : item
+      );
+  
+      const itemWithZeroQuantity = updatedOrderInfo.find(
+        (item) => item.dish._id === dishId && item.quantity === 0
+      );
+  
+      // If the item quantity is 0, remove it from the order and from finalDeliveryTime
+      if (itemWithZeroQuantity) {
+        updatedOrderInfo = updatedOrderInfo.filter((item) => item.quantity > 0);
+        
+        // Remove dishId from finalDeliveryTime
+        setFinalDeliveryTime((prevFinalTime) => {
+          const { [dishId]: _, ...rest } = prevFinalTime;
+          return rest;
+        });
+      }
+  
+      return updatedOrderInfo;
+    });
+    console.log(finalDeliveryTime)
+  };
+   
 
   const moveToConsumerConfirmOrderPageChange = () => {
     // Loop through each dish in orderDish
@@ -152,12 +182,12 @@ const ConsumerHomePage = () => {
 
   if(moveToConsumerConfirmOrderPage){
     return (
-      <ConsumerConfirmOrderPage orderInfo={orderInfo} moveToConsumerConfirmOrderPageChangeFun={moveToConsumerConfirmOrderPageChange} />
+      <ConsumerConfirmOrderPage orderInfo={orderInfo} deliveryDates={finalDeliveryTime} moveToConsumerConfirmOrderPageChangeFun={moveToConsumerConfirmOrderPageChange} />
     )
   }
 
   return (
-    <div className="relative">
+    <div className={`relative ${orderInfo.length > 0 ? 'pb-[250px]' : ''}`}>
       <Navbar activeLink="home" />
 
       <div className="space-y-16">

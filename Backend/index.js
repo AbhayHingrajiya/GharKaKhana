@@ -10,8 +10,8 @@ import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signO
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAllDishInfoProvider,  cancelOrderProvider } from './controllers/provider.js';
-import { getAdminProviderInfo } from './controllers/admin.js'
-import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer } from './controllers/consumer.js'
+import { getAdminProviderInfo, getAdminConsumerInfo } from './controllers/admin.js'
+import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer } from './controllers/consumer.js'
 
 dotenv.config(); // Load environment variables
 
@@ -54,9 +54,11 @@ app.post('/api/getConsumerAddress', fetchUserIdMiddleware, getConsumerAddress);
 app.post('/api/addNewAddress', fetchUserIdMiddleware, addNewAddress);
 app.post('/api/addNewOrder', fetchUserIdMiddleware, addNewOrder);
 app.post('/api/getPendingOrdersConsumer', fetchUserIdMiddleware, getPendingOrdersConsumer);
+app.post('/api/cancelOrderConsumer', fetchUserIdMiddleware, cancelOrderConsumer);
 
-//admin.js
+//admin.js 
 app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
+app.post('/api/getAdminConsumerInfo',getAdminConsumerInfo);
 
 // Socket.IO Connection Handler
 io.on('connection', (socket) => {

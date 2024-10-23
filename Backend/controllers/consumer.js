@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import FoodConsumer from '../models/FoodConsumer.js';
 import OrderInfo from '../models/OrderInfo.js';
 import DishInfo from '../models/DishInfo.js';
@@ -87,7 +86,7 @@ export const addNewAddress = async (req, res) => {
 export const addNewOrder = async (req, res) => {
   try {
     const consumerId = req.userId;
-    const { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge } = req.body;
+    const { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge, deliveryDate } = req.body;
     
     const dishInfoMap = new Map();
     const dishesToUpdate = [];
@@ -128,7 +127,8 @@ export const addNewOrder = async (req, res) => {
       dishPrice: totalAmount,
       gstPrice: gst,
       deliveryPrice: deliveryCharge,
-      totalPrice: totalAmount + gst + deliveryCharge
+      totalPrice: totalAmount + gst + deliveryCharge,
+      ...(deliveryDate != null && { deliveryDate })
     });
 
     await newOrder.save();
@@ -192,3 +192,52 @@ export const getPendingOrdersConsumer = async (req, res) => {
   }
 };
 
+export const cancelOrderConsumer = async (req, res) => {
+  const consumerId = req.userId; // Get consumer ID from the request
+  const { orderId, dishDetails } = req.body; // Destructure orderId and dishDetails from request body
+
+  if (consumerId) {
+      try {
+          // Update the order status to 'canceled'
+          const result = await OrderInfo.updateOne(
+              { _id: orderId, consumerId: consumerId }, // Query to find the order
+              { $set: { status: 'canceled' } } // Update the status to 'canceled'
+          );
+
+          if (result.modifiedCount === 0) {
+              return res.status(404).json({ error: 'cancelOrderConsumer: Order not found or already canceled.' });
+          }
+
+          // Loop through each dishDetail to update quantities
+          for (const { dishId, quantity } of dishDetails) {
+              try {
+                  // Fetch the current DishStatus for the dishId
+                  const dishStatus = await DishStatus.findOne({ dishId });
+
+                  if (dishStatus) {
+                      // Decrease quantity from pendingQuantity
+                      dishStatus.pendingQuantity = Math.max((dishStatus.pendingQuantity || 0) - quantity, 0);
+                      
+                      // Add quantity to cancelQuantity
+                      dishStatus.cancelQuantity = (dishStatus.cancelQuantity || 0) + quantity;
+
+                      // Save the updated status
+                      await dishStatus.save();
+                  } else {
+                      console.error(`cancelOrderConsumer: Dish status for ${dishId} not found.`);
+                  }
+              } catch (error) {
+                  console.error(`cancelOrderConsumer: Error processing dish with id ${dishId}:`, error);
+              }
+          }
+
+          // Respond with success
+          res.status(200).json({ message: 'Order canceled successfully.' });
+      } catch (error) {
+          console.error('cancelOrderConsumer: Error canceling order:', error);
+          res.status(500).json({ error: 'cancelOrderConsumer: Error canceling order.' });
+      }
+  } else {
+      res.status(400).json({ error: 'cancelOrderConsumer: Consumer ID is missing.' });
+  }
+};

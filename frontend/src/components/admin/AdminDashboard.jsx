@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import AdminProvider from './AdminProvider'
+import AdminConsumer from './AdminConsumer'
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminDashboard = () => {
@@ -23,7 +24,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <AdminProvider />
+      {/* <AdminProvider /> */}
+      <AdminConsumer />
     </div>
   );
 };

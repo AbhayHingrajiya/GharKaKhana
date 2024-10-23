@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import {useNavigate, useLocation} from 'react-router-dom';
 
-const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orderInfo}) => {
+const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, deliveryDates, orderInfo}) => {
 
-  const navigate = useNavigate();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
   const [addingAddress, setAddingAddress] = useState(false);
@@ -67,17 +65,27 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, orde
 
   const confirmPlaceOrder = async () => {
     gst = parseFloat(gst)
-    console.log(orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge)
+    const deliveryDate = Object.keys(deliveryDates).length === 0 
+      ? null // Handle the case when the set is empty
+      : new Date(
+          Math.max(...Object.values(deliveryDates).map(dateString => new Date(dateString)))
+    );
     try{
-      const res = await axios.post('/api/addNewOrder', { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge });
+      const res = await axios.post('/api/addNewOrder', { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge, deliveryDate });
       if(res.status == 201){
         alert('Order pacle successsfully');
-        window.location.reload();
       }else{
         console.error('Error in addNewOrder method in frontend side')
       }
-    }catch(err) {
-      console.error('Error at confirmPlaceOrder at frontend side: '+err);
+    }catch(error) {
+      if (error.response && error.response.status === 400) {
+        alert("Unfortunately, we do not have enough quantity available to fulfill your order.");
+      } else {
+          console.error('Error in addNewOrder request:', error);
+          alert('An error occurred while placing the order. Please try again later.');
+      }
+    }finally{
+      window.location.reload();
     }
   }
 

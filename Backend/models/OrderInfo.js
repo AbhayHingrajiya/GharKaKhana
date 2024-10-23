@@ -43,6 +43,10 @@ const orderInfoSchema = new Schema({
     type: Number,
     required: true
   },
+  deliveryDate: {
+    type: Date,
+    default: () => new Date(Date.now() + 1 * 60 * 60 * 1000)
+  },
   createdAt: {
     type: Date,
     default: Date.now

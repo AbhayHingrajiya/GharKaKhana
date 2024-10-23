@@ -198,6 +198,7 @@ const AdminProvider = () => {
                                                     exit={{ opacity: 0, height: 0 }}
                                                     className="overflow-hidden mt-2"
                                                 >
+                                                    <p className="text-gray-600 font-bold">Dish Id: {dish.dishInfo._id}</p>
                                                     <p className="text-gray-600">Address: {dish.dishInfo.address}</p>
                                                     <p className="text-gray-600">City Name: {dish.dishInfo.cityName}</p>
                                                     <p className="text-gray-600">Pincode: {dish.dishInfo.pincode}</p>

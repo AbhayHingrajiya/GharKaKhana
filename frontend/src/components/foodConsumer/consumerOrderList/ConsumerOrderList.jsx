@@ -34,12 +34,36 @@ const ConsumerOrderList = () => {
                 <ExpandableDiv title="Pending Orders" defaultExpand={true} theme={true}>
                     <div>
                         {pendingOrders.map(order => {
-                            const { _id, consumerId, paymentMethod, consumerAddress, status, dishPrice, gstPrice, deliveryPrice, totalPrice, createdAt, dishInfo } = order;
+                            const { _id, consumerId, paymentMethod, consumerAddress, status, dishPrice, gstPrice, deliveryPrice, totalPrice, createdAt, dishInfo, deliveryDate } = order;
 
                             const dishDetails = Object.entries(dishInfo).map(([dishId, quantity]) => ({
                                 dishId,
                                 quantity
                             }));
+
+                            const now = new Date();
+                            const dateString = new Date(deliveryDate).toLocaleString();
+                            const localDate = new Date(dateString);
+                            if(localDate < now){
+                                ( async () => {
+                                    console.log('function call============')
+                                    try {
+                                        const res = await axios.post('/api/cancelOrderConsumer', { orderId: _id, dishDetails });
+                                        
+                                        if (res.status >= 200 && res.status < 300) {
+                                            console.log('Order cancelled successfully:', res.data);
+                                            alert('One Order is Cancled')
+                                        } else {
+                                            console.error('Error in cancelOrderConsumer get res:', res.status, res.data);
+                                        }
+                                    } catch (error) {
+                                        console.error('Error in cancelOrderConsumer at frontend side:', error);
+                                    }                                    
+                                })();
+                                return(
+                                    <></>
+                                );
+                            }
 
                             return (
                                 <div key={_id} className="border p-4 mb-4">
@@ -47,6 +71,7 @@ const ConsumerOrderList = () => {
                                         <div className="flex flex-wrap gap-4">
                                             {dishDetails.map(({ dishId, quantity }) => {
                                                 const dishDetail = dishesInfo.get(dishId);
+
                                                 return (
                                                     <DishCard
                                                         dish={dishDetail?.dishDetails} // Use optional chaining to avoid errors
@@ -67,6 +92,7 @@ const ConsumerOrderList = () => {
                                     >
                                         <h4 className="font-bold">Order Details</h4>
                                         <p><span className="font-semibold">Order Id:</span> {_id}</p>
+                                        {deliveryDate && <p><span className="font-semibold">Delivery Date:</span> {new Date(deliveryDate).toLocaleString()}</p>}
                                         <p><span className="font-semibold">Status:</span> {status}</p>
                                         <p><span className="font-semibold">Total Price:</span> {totalPrice} RS.</p>
                                         <p><span className="font-semibold">Address:</span> {consumerAddress}</p>

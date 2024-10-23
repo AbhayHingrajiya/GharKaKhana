@@ -135,7 +135,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
         if(dish.repeat.length>0) return checkForRepeat(hours, minutes);
         const deleteCardFromDatabase = async () => {
           const res = await axios.post('/api/cancelOrderProvider', { dishId: dish._id });
-          if(res) changeThemeFlag(false);
+          if(res && userType != 'consumerOrder') changeThemeFlag(false);
         }
         deleteCardFromDatabase();
         return false;
@@ -177,7 +177,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     animate={{ opacity: 1, y: 0 }}
     // transition={{ type: 'spring', stiffness: 100 }}
   >
-  {userType != 'consumer' && (<div className="relative">
+  {userType != 'consumer' && userType != 'consumerOrder' && (<div className="relative">
     <button
       onClick={handleMenuToggle}
       className={`absolute top-1 right-1 p-2 rounded-full focus:outline-none z-10 ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
@@ -218,12 +218,16 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.3 }}
       />
-      <div className={`absolute top-2 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-        Delivery Till: {timeLeftDelivery ? timeLeftDelivery : 'None'}
-      </div>
-      <div className={`absolute top-10 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-        Order Till: {timeLeftOrder ? timeLeftOrder : 'None'}
-      </div>
+      { userType != 'consumerOrder' && (
+        <>
+          <div className={`absolute top-2 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+            Delivery Till: {timeLeftDelivery ? timeLeftDelivery : 'None'}
+          </div>
+          <div className={`absolute top-10 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+            Order Till: {timeLeftOrder ? timeLeftOrder : 'None'}
+          </div>
+        </>
+      )}
     </motion.div>
 
     <div className="p-4 lg:p-5 lg:w-1/2 flex flex-col justify-between">
@@ -280,7 +284,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     </div>
 
     <button className="bg-green-600 m-2 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200"
-    onClick={() => addToOrder(dish, count)}>
+    onClick={() => addToOrder(dish, count, timeLeftDelivery)}>
       Add Order
     </button>
   </div>)}
