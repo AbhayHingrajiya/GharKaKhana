@@ -49,39 +49,64 @@ export const getAdminProviderInfo = async (req, res) => {
 };
 
 export const getAdminConsumerInfo = async (req, res) => {
-    try {
-        // Step 1: Fetch all consumers
-        const consumers = await FoodConsumer.find();
+  try {
+      let dishIdSet = new Set(); // To collect all unique dishIds
 
-        // Step 2: Initialize an array to hold consumer info with their orders
-        const consumersWithOrders = await Promise.all(consumers.map(async (consumer) => {
-            // Step 3: Fetch orders for each consumer
-            const orders = await OrderInfo.find({ consumerId: consumer._id }); // Assuming there is a field 'consumerId' in OrderInfo
+      // Step 1: Fetch all consumers
+      const consumers = await FoodConsumer.find().lean(); // Get plain JavaScript objects for consumers
 
-            // Step 4: Map orders to include dish info
-            const mappedOrders = await Promise.all(orders.map(async (order) => {
-                const dishesArray = Object.entries(order.dishInfo).map(([dishId, quantity]) => {
-                    return { dishId, quantity };
-                });
+      // Step 2: Initialize an array to hold consumer info with their orders
+      const consumersWithOrders = await Promise.all(consumers.map(async (consumer) => {
+          // Step 3: Fetch orders for each consumer and use .lean() to get plain JavaScript objects
+          const orders = await OrderInfo.find({ consumerId: consumer._id }).lean();
 
-                return {
-                    orderDetails: order,
-                    dishes: dishesArray,
-                };
-            }));
+          // Step 4: Map orders to include only dishId set
+          const mappedOrders = orders.map((order) => {
+              // Extract dishId from dishInfo and add to dishIdSet
+              Object.keys(order.dishInfo).forEach((dishId) => {
+                  dishIdSet.add(dishId);
+              });
 
-            return {
-                consumerDetails: consumer,
-                orders: mappedOrders,
-            };
-        }));
+              return {
+                  orderDetails: order,
+              };
+          });
 
-        // Step 5: Send the response
-        console.log('=============');
-        console.log(consumersWithOrders)
-        return res.status(200).json(consumersWithOrders);
-    } catch (error) {
-        console.error('Error in getAdminConsumerInfo:', error);
-        return res.status(500).json({ message: 'Internal server error' });
-    }
+          return {
+              consumerDetails: consumer,
+              orders: mappedOrders,
+          };
+      }));
+
+      // Convert the Set of dishIds into an array
+      const dishIdsArray = Array.from(dishIdSet);
+
+      // Step 6: Fetch dish details for all dishIds from the DishDetails collection
+      const dishDetails = await DishInfo.find({ _id: { $in: dishIdsArray } }).lean();
+
+      // Step 7: Fetch item info for dishes
+      const itemInfo = await ItemDetails.find({ dishId: { $in: dishIdsArray } }).lean();
+
+      // Step 8: Map dishId to dish details and include related items
+      const dishInfoMap = dishDetails.reduce((acc, dish) => {
+          const itemsForDish = itemInfo.filter(item => item.dishId.toString() === dish._id.toString());
+
+          acc[dish._id] = {
+              ...dish,
+              items: itemsForDish, // Attach the items related to this dish
+          };
+
+          return acc;
+      }, {});
+
+      // Step 9: Send the response with consumersWithOrders and attached dishInfo
+      return res.status(200).json({
+          consumersWithOrders,
+          dishInfoMap, // Dish info with attached items, where dishId is the key
+      });
+
+  } catch (error) {
+      console.error('Error in getAdminConsumerInfo:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+  }
 };

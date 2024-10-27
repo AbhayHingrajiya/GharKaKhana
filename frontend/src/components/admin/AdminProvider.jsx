@@ -18,7 +18,6 @@ const AdminProvider = () => {
             try {
                 const res = await axios.post('/api/getAdminProviderInfo');
                 setProvidersData(res.data);
-                console.log(res.data);
             } catch (err) {
                 console.error('Error in getAdminProviderInfo at frontend side: ', err);
             }

@@ -5,12 +5,15 @@ import Navbar from '../../navbar/Navbar';
 import DishCard from '../../dishCard/DishCard';
 import axios from 'axios';
 import ConsumerConfirmOrderPage from '../consumerConfirmOrderPage/ConsumerConfirmOrderPage'
+import consumerHeroSectionImage from '../../../assets/consumerHeroSectionImage.jpg'
 
 const ConsumerHomePage = () => {
-  const [allDishes, setAllDishes] = useState(undefined);
+  const [allDishes, setAllDishes] = useState([]);
   const [orderInfo, setOrderInfo] = useState([]);
   const [moveToConsumerConfirmOrderPage, setMoveToConsumerConfirmOrderPage ] = useState(false);
   const [finalDeliveryTime, setFinalDeliveryTime] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredDishes, setFilteredDishes] = useState(allDishes);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -27,6 +30,14 @@ const ConsumerHomePage = () => {
       console.log('Geolocation is not supported by this browser.');
     }
   }, []);
+
+  useEffect(() => {
+    setFilteredDishes(
+      allDishes.filter(({ dishInfo }) => 
+        dishInfo.dishName.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    );
+  }, [searchQuery, allDishes])
 
   const getAddressFromCoordinates = (lat, lon) => {
     axios
@@ -191,7 +202,7 @@ const ConsumerHomePage = () => {
       <Navbar activeLink="home" />
 
       <div className="space-y-16">
-        <section className="relative h-[400px] bg-cover bg-center" style={{ backgroundImage: "url('https://via.placeholder.com/1600x400')" }}>
+        <section className="relative h-[400px] bg-cover bg-center" style={{ backgroundImage: `url(${consumerHeroSectionImage})` }}>
           <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
             <motion.div
               initial={{ opacity: 0 }}
@@ -212,14 +223,14 @@ const ConsumerHomePage = () => {
       {/* Search Bar */}
       <div className="mt-8 mb-12 flex justify-center">
         <div className="flex items-center border border-gray-300 rounded-full overflow-hidden shadow-md w-full md:w-2/3 lg:w-1/2">
-          <input type="text" placeholder="Search for dishes or chefs..." className="w-full px-4 py-2 focus:outline-none" />
+          <input type="text" placeholder="Search for dishes" className="w-full px-4 py-2 focus:outline-none" onChange={(e) => setSearchQuery(e.target.value)} />
           <button className="bg-green-500 text-white px-6 py-3">
             <FaSearch />
           </button>
         </div>
       </div>
 
-      <div className="space-y-8 w-full p-4">
+      {/* <div className="space-y-8 w-full p-4">
         <motion.div
           className="flex justify-around w-full p-4 bg-gray-50 rounded-md shadow"
           initial={{ y: -50 }}
@@ -239,11 +250,11 @@ const ConsumerHomePage = () => {
             <option>Time Range</option>
           </select>
         </motion.div>
-      </div>
+      </div> */}
 
       <div className="flex flex-wrap gap-4">
-        {allDishes && (
-          allDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (
+        {filteredDishes && (
+          filteredDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (
             <DishCard
               key={index}
               dish={dishInfo}

@@ -133,6 +133,25 @@ export const addNewOrder = async (req, res) => {
 
     await newOrder.save();
 
+     ((deliveryDate) => {
+      const jobTime = deliveryDate 
+        ? new Date(new Date(deliveryDate).getTime())
+        : new Date(Date.now() + 60 * 60 * 1000); // fallback if deliveryDate is null
+      
+      const delay = jobTime.getTime() - Date.now();
+    
+      if (delay > 0) {
+        setTimeout(() => {
+          // Code to execute before delivery time
+          console.log(`Running task scheduled for delivery on: ${deliveryDate}`);
+          // Add additional logic here
+        }, delay);
+        console.log(`Job scheduled to run at: ${jobTime}`);
+      } else {
+        console.log("Scheduled time is in the past. Job will not run.");
+      }
+    })(deliveryDate)
+
     return res.status(201).json({ message: 'New order added', orderId: newOrder._id });
 
   } catch (err) {

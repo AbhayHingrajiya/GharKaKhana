@@ -1,8 +1,7 @@
-import FoodProvider from '../models/FoodProvider.js';
 import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
 import DishStatus from '../models/DishStatus.js';
-import axios from 'axios';
+import OrderInfo from '../models/OrderInfo.js';
 
 export const addDish = async (req, res) => {
     const {
@@ -229,3 +228,55 @@ export const getAllDishInfoProvider = async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 };
+
+export const generateOTPfordelivery = async (req, res) => {
+  const loginConformation = req.userId;
+
+  if (!loginConformation) {
+    return res.status(401).json({ message: "Unauthorized access." });
+  }
+
+  const { dishId } = req.body;
+
+  if (!dishId) {
+    return res.status(400).json({ message: "Dish ID is required." });
+  }
+
+  try {
+    // Fetch orders with pending status and the specified dishId
+    const orders = await OrderInfo.find({
+      status: 'pending',
+      [`dishInfo.${dishId}`]: { $exists: true }
+    }, {
+      _id: 1,                             // Select order ID
+      [`dishInfo.${dishId}`]: 1           // Select the quantity for the given dishId
+    }).exec();
+
+    const result = orders.map(order => {
+      // Generate a 4-digit random number
+      const randomNumber = Math.floor(1000 + Math.random() * 9000);
+      
+      // Access quantity directly from dishInfo
+      const quantity = order.dishInfo ? order.dishInfo.get(dishId) : undefined;
+
+      return {
+        orderId: order._id,
+        quantity: quantity,                  // Include the quantity
+        otp: randomNumber                     // Add the random number to the result
+      };
+    });
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No pending orders found for the specified dish ID." });
+    }
+
+    // Respond with the matching orders, quantities, and OTPs
+    return res.status(200).json({ orders: result });
+
+  } catch (error) {
+    console.error('Error generating OTP for delivery:', error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+

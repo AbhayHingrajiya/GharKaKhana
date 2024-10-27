@@ -152,7 +152,6 @@ const ProviderOrderList = () => {
     } else {
       try {
         const res = await axios.post('/api/cancelOrderProvider', { dishId: dishInfo._id });
-        console.log(res.data);
       } catch (err) {
         console.error('Error in expireDish: ' + err);
       }
@@ -190,6 +189,7 @@ const ProviderOrderList = () => {
                 item={itemInfo}
                 Quantity={pendingQuantity}
                 theme={true}
+                userType='providerPending'
                 addCardToCancelDiv={addCardToCancel}
               />
             ))}
