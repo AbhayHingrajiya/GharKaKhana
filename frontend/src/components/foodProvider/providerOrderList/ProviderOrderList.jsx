@@ -49,9 +49,9 @@ const ProviderOrderList = () => {
 
       // Validate pending dishes
       const validPendingDishesArray = await Promise.all(
-        pendingDishes.map(async ({ dishInfo, itemInfo, pendingQuantity }) => {
+        pendingDishes.map(async ({ dishInfo, itemInfo, pendingQuantity, readyForDelivery }) => {
           const isValid = await isValidDish(dishInfo); // Check if the dish is valid
-          return isValid ? { dishInfo, itemInfo, pendingQuantity } : null;
+          return isValid ? { dishInfo, itemInfo, pendingQuantity, readyForDelivery } : null;
         })
       );
 
@@ -62,7 +62,6 @@ const ProviderOrderList = () => {
       try {
         const response = await axios.post('/api/getProviderId');
         if (response.status === 200) {
-          console.log(response.data.userId)
           socket.emit('joinProviderRoom', response.data.userId);
         } else {
           console.error('Error in getProviderId at frontend side');
@@ -182,13 +181,14 @@ const ProviderOrderList = () => {
 
         <ExpandableDiv title="Pending Orders" defaultExpand={true} theme={true}>
           <div className="flex flex-wrap gap-4">
-            {pendingDishes.map(({ dishInfo, itemInfo, pendingQuantity }, index) => (
+            {pendingDishes.map(({ dishInfo, itemInfo, pendingQuantity, readyForDelivery }, index) => (
               <DishCard
                 key={index}
                 dish={dishInfo}
                 item={itemInfo}
                 Quantity={pendingQuantity}
                 theme={true}
+                readyForDelivery={readyForDelivery}
                 userType='providerPending'
                 addCardToCancelDiv={addCardToCancel}
               />

@@ -47,6 +47,10 @@ const orderInfoSchema = new Schema({
     type: Date,
     default: () => new Date(Date.now() + 1 * 60 * 60 * 1000)
   },
+  otp: {
+    type: Map,
+    of: Number
+  },
   createdAt: {
     type: Date,
     default: Date.now

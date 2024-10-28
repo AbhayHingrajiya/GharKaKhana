@@ -4,12 +4,12 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import http from 'http';
 import { Server } from 'socket.io';
-import connectMongoDB from './db/connectMongoDB.js'; // Import the MongoDB connection function
+import connectMongoDB from './db/connectMongoDB.js'; 
 import { fetchUserIdMiddleware } from './middleware/fetchUserIdMiddleware.js';
 import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut } from "./controllers/auth.js";
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
-import { addDish, getAllDishInfoProvider,  cancelOrderProvider, generateOTPfordelivery } from './controllers/provider.js';
+import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery } from './controllers/provider.js';
 import { getAdminProviderInfo, getAdminConsumerInfo } from './controllers/admin.js'
 import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer } from './controllers/consumer.js'
 
@@ -41,13 +41,13 @@ app.post('/api/signOut', signOut);
 //generateToken.js
 app.post('/api/getUserId', getUserId);
 app.post('/api/getMe', getMe);
+app.post('/api/getProviderId', getUserId);
 
 //provider.js
 app.post('/api/addDish', fetchUserIdMiddleware, addDish);
 app.post('/api/cancelOrderProvider', cancelOrderProvider);
-app.post('/api/getProviderId', getUserId);
 app.post('/api/getAllDishInfoProvider', fetchUserIdMiddleware, getAllDishInfoProvider);
-app.post('/api/generateOTPfordelivery', fetchUserIdMiddleware, generateOTPfordelivery);
+app.post('/api/getOTPforDelivery', fetchUserIdMiddleware, getOTPforDelivery);
 
 //consumer.js
 app.post('/api/consumerGetDishInfo', consumerGetDishInfo);

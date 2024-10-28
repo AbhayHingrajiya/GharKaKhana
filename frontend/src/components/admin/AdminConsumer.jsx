@@ -104,8 +104,8 @@ const AdminConsumer = () => {
                     className="border p-2 rounded w-full"
                 >
                     <option value="">All Statuses</option>
-                    <option value="available">Available</option>
                     <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
                     <option value="completed">Completed</option>
                     <option value="canceled">Canceled</option>
                 </select>

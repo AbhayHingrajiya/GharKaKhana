@@ -4,7 +4,7 @@ import { FaEllipsisV } from 'react-icons/fa';
 import {useNavigate, useLocation} from 'react-router-dom';
 import axios from 'axios';
 
-const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, userType, addToOrder }) => {
+const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, userType, addToOrder, readyForDelivery }) => {
   const navigate = useNavigate();
   const [themeFlag, changeThemeFlag] = useState(theme)
   const [isExpanded, setIsExpanded] = useState(false);
@@ -23,7 +23,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
   const [showMenu, setShowMenu] = useState(false);
   const [count, setCount] = useState(1);
   const [orders, setOrders] = useState([]);
-  const [readyToDeliverFlag, setReadyToDeliverFlag] = useState(true)
+  const [readyToDeliverFlag, setReadyToDeliverFlag] = useState(readyForDelivery)
   const [errorMsg, setErrorMsg] = useState(""); // State for error messages
   const [deliveredOrders, setDeliveredOrders] = useState([]); // State to track delivered orders
   const [enteredOtps, setEnteredOtps] = useState({}); // Store OTPs for each order
@@ -138,7 +138,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
         if(dish.repeat.length>0) return checkForRepeat(hours, minutes);
         const deleteCardFromDatabase = async () => {
           const res = await axios.post('/api/cancelOrderProvider', { dishId: dish._id });
-          if(res && userType != 'consumerOrder') changeThemeFlag(false);
+          if(res && userType == 'consumer') changeThemeFlag(false);
         }
         deleteCardFromDatabase();
         return false;
@@ -162,19 +162,24 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
 
   const editOrderPress = () => {
     navigate('/providerHomePage', { state: { dishInfo: dish, itemInfo: item } })
-  }
+  };
+
+  useEffect( () => {
+    if(readyForDelivery) readyToDeliver();
+  }, []);
 
   const readyToDeliver = async () => {
     try {
-        const res = await axios.post('/api/generateOTPfordelivery', { dishId: dish._id });
+        const res = await axios.post('/api/getOTPforDelivery', { dishId: dish._id });
         setOrders(res.data.orders);
-        setReadyToDeliverFlag(false);
+        setReadyToDeliverFlag(true);
+        console.log(res.data.orders)
     } catch (error) {
         const errorMessage = error.response 
-            ? `Error: ${error.response.status} - ${error.response.data.message || "Something went wrong during the POST request."}` 
+            ? `Error: ${error.response.status} - ${error.response.data.message || "Something went wrong during the getOTPforDelivery POST request."}` 
             : `Error: ${error.message}`;
         
-        console.error(`Error in readyToDeliver POST method: ${errorMessage}`);
+        console.error(`Error in getOTPforDelivery POST method: ${errorMessage}`);
     }
   };
 
@@ -305,7 +310,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
       </div>
     </div>
 
-    {userType == 'providerPending' && readyToDeliverFlag && (<motion.button
+    {userType == 'providerPending' && !readyToDeliverFlag && (<motion.button
       onClick={readyToDeliver}
       className="w-full bg-green-600 text-white px-6 py-3 mt-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 ease-in-out"
       whileHover={{ scale: 1.05, boxShadow: "0 8px 15px rgba(34, 139, 34, 0.3)" }} // Green shadow on hover
@@ -315,7 +320,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     </motion.button>)}
 
     {errorMsg && <div className="text-red-600 mb-4">{errorMsg}</div>}
-    {orders.length > 0 && !readyToDeliverFlag && (
+    {orders.length > 0 && readyToDeliverFlag && (
         <div className="p-4 lg:p-5 lg:w-full flex flex-col justify-between">
             <h3 className={`text-xl font-semibold ${themeFlag ? 'text-green-900' : 'text-red-900'} mb-2`}>
                 Orders:
