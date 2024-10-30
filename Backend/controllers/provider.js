@@ -230,7 +230,7 @@ export const getAllDishInfoProvider = async (req, res) => {
   }
 };
 
-export const getOTPforDelivery = async (req, res) => {
+export const getOTPforDelivery = async (req, res) => {  
   const loginConfirmation = req.userId;
 
   if (!loginConfirmation) {
@@ -247,11 +247,12 @@ export const getOTPforDelivery = async (req, res) => {
     const orders = await OrderInfo.find(
       {
         status: { $in: ['pending', 'confirmed'] },
-        [`dishInfo.${dishId}`]: { $exists: true }
+        [`dishInfo.${dishId}`]: { $exists: true },
+        [`dishDelivery.${dishId}`]: false
       },
       {
         _id: 1,
-        [`dishInfo.${dishId}`]: 1,
+        [`dishInfo`]: 1,
         [`otp.${dishId}`]: 1
       }
     ).exec();
@@ -271,8 +272,15 @@ export const getOTPforDelivery = async (req, res) => {
             })
           );
 
+          console.log('======================')
+          console.log(order._id)
+          console.log(order.dishInfo)
+          console.log(dishIds)
+          console.log(dishStatuses)
+
           for (const [index, dishStatus] of dishStatuses.entries()) {
-            if (!dishStatus && dishIds[index] !== dishId) {
+            console.log(dishStatus.readyForDelivery)
+            if (!dishStatus.readyForDelivery && dishIds[index] !== dishId) {
               flagForDishStatus = false;
               break;
             }
@@ -324,4 +332,44 @@ export const getOTPforDelivery = async (req, res) => {
   }
 };
 
+export const comfirmOrderDeliveryByProvider = async (req, res) => {
+  const loginVarification = req.userId;
 
+  if (!loginVarification) {
+    return res.status(401).json({ message: "Unauthorized access" });
+  }
+
+  const { orderId, dishId, quantity } = req.body;
+
+  try {
+    const updateResult = await OrderInfo.findOneAndUpdate(
+      { _id: orderId },
+      { $set: { [`dishDelivery.${dishId}`]: true } },
+      { new: true }
+    );
+
+    if (!updateResult) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const updatedDish = await DishStatus.findOneAndUpdate(
+      { dishId },
+      {
+        $inc: {
+          pendingQuantity: -quantity,
+          completeQuantity: quantity
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedDish) {
+      return res.status(404).json({ message: "Dish not found" });
+    }
+
+    return res.status(200).json({ message: "Order and dish updated successfully", updateResult, updatedDish });
+  } catch (error) {
+    console.error("Error updating order and dish:", error);
+    return res.status(500).json({ message: "Error updating order and dish" });
+  }
+};

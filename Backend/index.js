@@ -9,7 +9,7 @@ import { fetchUserIdMiddleware } from './middleware/fetchUserIdMiddleware.js';
 import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut } from "./controllers/auth.js";
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
-import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery } from './controllers/provider.js';
+import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider } from './controllers/provider.js';
 import { getAdminProviderInfo, getAdminConsumerInfo } from './controllers/admin.js'
 import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer } from './controllers/consumer.js'
 
@@ -48,6 +48,7 @@ app.post('/api/addDish', fetchUserIdMiddleware, addDish);
 app.post('/api/cancelOrderProvider', cancelOrderProvider);
 app.post('/api/getAllDishInfoProvider', fetchUserIdMiddleware, getAllDishInfoProvider);
 app.post('/api/getOTPforDelivery', fetchUserIdMiddleware, getOTPforDelivery);
+app.post('/api/comfirmOrderDeliveryByProvider', fetchUserIdMiddleware, comfirmOrderDeliveryByProvider);
 
 //consumer.js
 app.post('/api/consumerGetDishInfo', consumerGetDishInfo);

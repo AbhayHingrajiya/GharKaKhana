@@ -49,7 +49,13 @@ const orderInfoSchema = new Schema({
   },
   otp: {
     type: Map,
-    of: Number
+    of: Number,
+    required: true
+  },
+  dishDelivery: {
+    type: Map,
+    of: Boolean,
+    required: true
   },
   createdAt: {
     type: Date,

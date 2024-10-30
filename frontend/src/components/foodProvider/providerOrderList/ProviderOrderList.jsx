@@ -31,6 +31,7 @@ const ProviderOrderList = () => {
         const resAllDishes = await axios.post('/api/getAllDishInfoProvider');
         validateDishes(resAllDishes.data.availableDishes, resAllDishes.data.pendingDishes);
         setCancelDishes(resAllDishes.data.cancelDishes);
+        setCompleteDishes(resAllDishes.data.completeDishes);
       } catch (error) {
         console.error('Error fetching dish info:', error);
       } finally {
@@ -196,7 +197,7 @@ const ProviderOrderList = () => {
           </div>
         </ExpandableDiv>
 
-        <ExpandableDiv title="Current Orders" defaultExpand={false} theme={true}>
+        <ExpandableDiv title="Available Orders" defaultExpand={false} theme={true}>
           <div className="flex flex-wrap gap-4">
             {availableDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (
               <DishCard
@@ -205,6 +206,7 @@ const ProviderOrderList = () => {
                 item={itemInfo}
                 Quantity={availableQuantity}
                 theme={true}
+                userType='ProviderAvailableDish'
                 addCardToCancelDiv={addCardToCancel}
               />
             ))}
@@ -212,7 +214,17 @@ const ProviderOrderList = () => {
         </ExpandableDiv>
 
         <ExpandableDiv title="Complete Orders" defaultExpand={false} theme={true}>
-          {/* Add logic for complete orders */}
+          <div className="flex flex-wrap gap-4">
+            {completeDishes.map(({ dishInfo, itemInfo, completeQuantity }, index) => (
+              <DishCard
+                key={index}
+                dish={dishInfo}
+                item={itemInfo}
+                Quantity={completeQuantity}
+                theme={true}
+              />
+            ))}
+          </div>
         </ExpandableDiv>
         
         <ExpandableDiv title="Cancel Orders" defaultExpand={false} theme={false}>

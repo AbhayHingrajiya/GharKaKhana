@@ -188,22 +188,32 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
     setEnteredOtps(prev => ({ ...prev, [orderId]: otp }));
   };
 
-  const deliveryButtonClick = (orderId) => {
-      const order = orders.find(o => o.orderId === orderId);
-      const enteredOtp = enteredOtps[orderId];
-
-      if (order) {
-          if (order.otp == enteredOtp) {
-              setDeliveredOrders(prev => [...prev, order]);
-              setErrorMsg("");
-              setOrders(prevOrders => 
-                prevOrders.filter(existingOrder => existingOrder.orderId !== orderId)
-            );
-          } else {
-              setErrorMsg("The OTP you entered is incorrect. Please try again.");
-          }
+  const deliveryButtonClick = async (orderId) => {
+    const order = orders.find(o => o.orderId === orderId);
+    const enteredOtp = enteredOtps[orderId];
+    
+    if (order && order.otp == enteredOtp) {
+      try {
+        const res = await axios.post('/api/comfirmOrderDeliveryByProvider', {
+          orderId,
+          dishId: dish._id,
+          quantity: order.quantity
+        });
+        
+        setDeliveredOrders(prev => [...prev, order]);
+        setOrders(prevOrders => 
+          prevOrders.filter(existingOrder => existingOrder.orderId !== orderId)
+        );
+        setErrorMsg("");
+      } catch (error) {
+        setErrorMsg("Error confirming delivery. Please try again.");
+        console.error('Error in comfirmOrderDeliveryByProvider: '+error)
       }
+    } else {
+      setErrorMsg("The OTP you entered is incorrect. Please try again.");
+    }
   };
+  
     
   if(isCancel){
     return(<></>)
@@ -221,7 +231,7 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
       animate={{ opacity: 1, y: 0 }}
       // transition={{ type: 'spring', stiffness: 100 }}
     >
-    {userType != 'consumer' && userType != 'consumerOrder' && (<div className="relative">
+    {userType == 'ProviderAvailableDish' && (<div className="relative">
       <button
         onClick={handleMenuToggle}
         className={`absolute top-1 right-1 p-2 rounded-full focus:outline-none z-10 ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}

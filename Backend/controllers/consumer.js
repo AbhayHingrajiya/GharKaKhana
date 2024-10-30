@@ -90,6 +90,7 @@ export const addNewOrder = async (req, res) => {
     
     const dishInfoMap = new Map();
     const otp = new Map();
+    const dishDelivery = new Map()
     const dishesToUpdate = [];
     
     for (const item of orderInfo) {
@@ -107,6 +108,7 @@ export const addNewOrder = async (req, res) => {
 
       const randomNumber = Math.floor(1000 + Math.random() * 9000);
       otp.set(dishId, randomNumber);
+      dishDelivery.set(dishId, false);
     }
 
     for (const { dish, quantityOrdered } of dishesToUpdate) {
@@ -133,6 +135,7 @@ export const addNewOrder = async (req, res) => {
       deliveryPrice: deliveryCharge,
       totalPrice: totalAmount + gst + deliveryCharge,
       otp: Object.fromEntries(otp),
+      dishDelivery: Object.fromEntries(dishDelivery),
       ...(deliveryDate != null && { deliveryDate })
     });
 
