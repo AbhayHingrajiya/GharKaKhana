@@ -24,8 +24,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      {/* <AdminProvider /> */}
-      <AdminConsumer />
+      <AdminProvider />
+      {/* <AdminConsumer /> */}
     </div>
   );
 };
