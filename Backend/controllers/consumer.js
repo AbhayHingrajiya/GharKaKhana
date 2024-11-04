@@ -89,6 +89,8 @@ export const addNewOrder = async (req, res) => {
     const { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge, deliveryDate } = req.body;
     
     const dishInfoMap = new Map();
+    const otp = new Map();
+    const dishDelivery = new Map()
     const dishesToUpdate = [];
     
     for (const item of orderInfo) {
@@ -103,6 +105,10 @@ export const addNewOrder = async (req, res) => {
 
       dishesToUpdate.push({ dish, quantityOrdered });
       dishInfoMap.set(dishId, (dishInfoMap.get(dishId) || 0) + quantityOrdered);
+
+      const randomNumber = Math.floor(1000 + Math.random() * 9000);
+      otp.set(dishId, randomNumber);
+      dishDelivery.set(dishId, false);
     }
 
     for (const { dish, quantityOrdered } of dishesToUpdate) {
@@ -128,10 +134,31 @@ export const addNewOrder = async (req, res) => {
       gstPrice: gst,
       deliveryPrice: deliveryCharge,
       totalPrice: totalAmount + gst + deliveryCharge,
+      otp: Object.fromEntries(otp),
+      dishDelivery: Object.fromEntries(dishDelivery),
       ...(deliveryDate != null && { deliveryDate })
     });
 
     await newOrder.save();
+
+     ((deliveryDate) => {
+      const jobTime = deliveryDate 
+        ? new Date(new Date(deliveryDate).getTime())
+        : new Date(Date.now() + 60 * 60 * 1000); // fallback if deliveryDate is null
+      
+      const delay = jobTime.getTime() - Date.now();
+    
+      if (delay > 0) {
+        setTimeout(() => {
+          // Code to execute before delivery time
+          console.log(`Running task scheduled for delivery on: ${deliveryDate}`);
+          // Add additional logic here
+        }, delay);
+        console.log(`Job scheduled to run at: ${jobTime}`);
+      } else {
+        console.log("Scheduled time is in the past. Job will not run.");
+      }
+    })(deliveryDate)
 
     return res.status(201).json({ message: 'New order added', orderId: newOrder._id });
 

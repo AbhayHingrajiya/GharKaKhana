@@ -31,6 +31,7 @@ const ProviderOrderList = () => {
         const resAllDishes = await axios.post('/api/getAllDishInfoProvider');
         validateDishes(resAllDishes.data.availableDishes, resAllDishes.data.pendingDishes);
         setCancelDishes(resAllDishes.data.cancelDishes);
+        setCompleteDishes(resAllDishes.data.completeDishes);
       } catch (error) {
         console.error('Error fetching dish info:', error);
       } finally {
@@ -49,9 +50,9 @@ const ProviderOrderList = () => {
 
       // Validate pending dishes
       const validPendingDishesArray = await Promise.all(
-        pendingDishes.map(async ({ dishInfo, itemInfo, pendingQuantity }) => {
+        pendingDishes.map(async ({ dishInfo, itemInfo, pendingQuantity, readyForDelivery }) => {
           const isValid = await isValidDish(dishInfo); // Check if the dish is valid
-          return isValid ? { dishInfo, itemInfo, pendingQuantity } : null;
+          return isValid ? { dishInfo, itemInfo, pendingQuantity, readyForDelivery } : null;
         })
       );
 
@@ -62,7 +63,6 @@ const ProviderOrderList = () => {
       try {
         const response = await axios.post('/api/getProviderId');
         if (response.status === 200) {
-          console.log(response.data.userId)
           socket.emit('joinProviderRoom', response.data.userId);
         } else {
           console.error('Error in getProviderId at frontend side');
@@ -152,7 +152,6 @@ const ProviderOrderList = () => {
     } else {
       try {
         const res = await axios.post('/api/cancelOrderProvider', { dishId: dishInfo._id });
-        console.log(res.data);
       } catch (err) {
         console.error('Error in expireDish: ' + err);
       }
@@ -183,20 +182,22 @@ const ProviderOrderList = () => {
 
         <ExpandableDiv title="Pending Orders" defaultExpand={true} theme={true}>
           <div className="flex flex-wrap gap-4">
-            {pendingDishes.map(({ dishInfo, itemInfo, pendingQuantity }, index) => (
+            {pendingDishes.map(({ dishInfo, itemInfo, pendingQuantity, readyForDelivery }, index) => (
               <DishCard
                 key={index}
                 dish={dishInfo}
                 item={itemInfo}
                 Quantity={pendingQuantity}
                 theme={true}
+                readyForDelivery={readyForDelivery}
+                userType='providerPending'
                 addCardToCancelDiv={addCardToCancel}
               />
             ))}
           </div>
         </ExpandableDiv>
 
-        <ExpandableDiv title="Current Orders" defaultExpand={false} theme={true}>
+        <ExpandableDiv title="Available Orders" defaultExpand={false} theme={true}>
           <div className="flex flex-wrap gap-4">
             {availableDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (
               <DishCard
@@ -205,6 +206,7 @@ const ProviderOrderList = () => {
                 item={itemInfo}
                 Quantity={availableQuantity}
                 theme={true}
+                userType='ProviderAvailableDish'
                 addCardToCancelDiv={addCardToCancel}
               />
             ))}
@@ -212,7 +214,17 @@ const ProviderOrderList = () => {
         </ExpandableDiv>
 
         <ExpandableDiv title="Complete Orders" defaultExpand={false} theme={true}>
-          {/* Add logic for complete orders */}
+          <div className="flex flex-wrap gap-4">
+            {completeDishes.map(({ dishInfo, itemInfo, completeQuantity }, index) => (
+              <DishCard
+                key={index}
+                dish={dishInfo}
+                item={itemInfo}
+                Quantity={completeQuantity}
+                theme={true}
+              />
+            ))}
+          </div>
         </ExpandableDiv>
         
         <ExpandableDiv title="Cancel Orders" defaultExpand={false} theme={false}>

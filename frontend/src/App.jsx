@@ -31,7 +31,6 @@ function App() {
       try {
         const res = await axios.post('/api/getMe');
         if (res.status === 200) {
-          console.log(res.data);
           setIsLogedIn(true);
           setUserType(res.data.type)
           dispatch(setUser({

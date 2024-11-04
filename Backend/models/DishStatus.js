@@ -26,6 +26,10 @@ const DishStatusSchema = new mongoose.Schema({
   cancelQuantity: {
     type: Number,
     default: 0
+  },
+  readyForDelivery: {
+    type: Boolean,
+    default: false
   }
 });
 

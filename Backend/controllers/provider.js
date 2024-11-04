@@ -1,8 +1,8 @@
-import FoodProvider from '../models/FoodProvider.js';
 import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
 import DishStatus from '../models/DishStatus.js';
-import axios from 'axios';
+import OrderInfo from '../models/OrderInfo.js';
+import mongoose from 'mongoose';
 
 export const addDish = async (req, res) => {
     const {
@@ -189,14 +189,14 @@ export const getAllDishInfoProvider = async (req, res) => {
     const pendingDish = await DishStatus.find({
       providerId: providerId,
       pendingQuantity: { $gt: 0 }
-    }).select('dishId pendingQuantity');
+    }).select('dishId pendingQuantity readyForDelivery');
 
     const pendingDishes = await Promise.all(
-      pendingDish.map(async ({ dishId, pendingQuantity }) => {
+      pendingDish.map(async ({ dishId, pendingQuantity, readyForDelivery }) => {
         const dishInfo = await DishInfo.findOne({ _id: dishId });
         const itemInfo = await ItemDetails.find({ dishId: dishId });
 
-        return { dishInfo, itemInfo, pendingQuantity };
+        return { dishInfo, itemInfo, pendingQuantity, readyForDelivery };
       })
     );
 
@@ -227,5 +227,149 @@ export const getAllDishInfoProvider = async (req, res) => {
   } catch (err) {
     console.error('Error fetching dish info at provider.js:', err);
     res.status(500).send('Internal Server Error');
+  }
+};
+
+export const getOTPforDelivery = async (req, res) => {  
+  const loginConfirmation = req.userId;
+
+  if (!loginConfirmation) {
+    return res.status(401).json({ message: "Unauthorized access in generateOTPforDelivery." });
+  }
+
+  const { dishId } = req.body;
+
+  if (!dishId) {
+    return res.status(400).json({ message: "Dish ID is required in generateOTPforDelivery." });
+  }
+
+  try {
+    const orders = await OrderInfo.find(
+      {
+        status: { $in: ['pending', 'confirmed'] },
+        [`dishInfo.${dishId}`]: { $exists: true },
+        [`dishDelivery.${dishId}`]: false
+      },
+      {
+        _id: 1,
+        [`dishInfo`]: 1,
+        [`otp.${dishId}`]: 1
+      }
+    ).exec();
+
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        let flagForDishStatus = true;
+        const quantity = order.dishInfo ? order.dishInfo.get(dishId) : undefined;
+        const otp = order.otp ? order.otp.get(dishId) : undefined;
+
+        try {
+          const dishIds = Array.from(order.dishInfo.keys());
+
+          const dishStatuses = await Promise.all(
+            dishIds.map(async (id) => {
+              return await DishStatus.findOne({ dishId: id }, { readyForDelivery: 1 });
+            })
+          );
+
+          console.log('======================')
+          console.log(order._id)
+          console.log(order.dishInfo)
+          console.log(dishIds)
+          console.log(dishStatuses)
+
+          for (const [index, dishStatus] of dishStatuses.entries()) {
+            console.log(dishStatus.readyForDelivery)
+            if (!dishStatus.readyForDelivery && dishIds[index] !== dishId) {
+              flagForDishStatus = false;
+              break;
+            }
+          }
+
+          if (flagForDishStatus) {
+            await OrderInfo.findOneAndUpdate(
+              { _id: order._id },
+              { status: 'confirmed' },
+              { new: true }
+            );
+          }
+        } catch (dishStatusError) {
+          console.error(`Error checking dish status for order ${order._id}:`, dishStatusError);
+          flagForDishStatus = false;
+        }
+
+        return {
+          orderId: order._id,
+          quantity,
+          otp
+        };
+      })
+    );
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: "No pending orders found for the specified dish ID in generateOTPforDelivery." });
+    }
+
+    try {
+      const updatedDishStatus = await DishStatus.findOneAndUpdate(
+        { dishId: mongoose.Types.ObjectId.isValid(dishId) ? dishId : null },
+        { readyForDelivery: true },
+        { new: true }
+      );
+
+      if (!updatedDishStatus) {
+        console.error("No DishStatus found with this dishId:", dishId);
+      }
+    } catch (updateError) {
+      console.error("Error updating DishStatus for delivery readiness:", updateError);
+    }
+
+    return res.status(200).json({ orders: result });
+    
+  } catch (error) {
+    console.error('Error generating OTP for delivery in generateOTPforDelivery:', error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const comfirmOrderDeliveryByProvider = async (req, res) => {
+  const loginVarification = req.userId;
+
+  if (!loginVarification) {
+    return res.status(401).json({ message: "Unauthorized access" });
+  }
+
+  const { orderId, dishId, quantity } = req.body;
+
+  try {
+    const updateResult = await OrderInfo.findOneAndUpdate(
+      { _id: orderId },
+      { $set: { [`dishDelivery.${dishId}`]: true } },
+      { new: true }
+    );
+
+    if (!updateResult) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const updatedDish = await DishStatus.findOneAndUpdate(
+      { dishId },
+      {
+        $inc: {
+          pendingQuantity: -quantity,
+          completeQuantity: quantity
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedDish) {
+      return res.status(404).json({ message: "Dish not found" });
+    }
+
+    return res.status(200).json({ message: "Order and dish updated successfully", updateResult, updatedDish });
+  } catch (error) {
+    console.error("Error updating order and dish:", error);
+    return res.status(500).json({ message: "Error updating order and dish" });
   }
 };
