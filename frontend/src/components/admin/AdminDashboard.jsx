@@ -39,10 +39,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-<<<<<<< HEAD
-      <AdminProvider />
       {/* <AdminConsumer /> */}
-=======
       <div className="flex-1 p-8">
         {divUser === 'provider' ? (
           <AdminProvider />
@@ -52,7 +49,6 @@ const AdminDashboard = () => {
           <AdminConsumer />
         )}
       </div>
->>>>>>> 4326d082202a27a721ee0fffd576111f7bac3ed2
     </div>
   );
 };

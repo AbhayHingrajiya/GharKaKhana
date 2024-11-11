@@ -21,13 +21,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.3",
     "multer": "^1.4.5-lts.1",
-<<<<<<< HEAD
     "socket.io": "^4.8.0",
-    "socket.io-client": "^4.8.0"
-=======
-    "node-cron": "^3.0.3",
-    "socket.io": "^4.8.0"
->>>>>>> 4326d082202a27a721ee0fffd576111f7bac3ed2
+    "socket.io-client": "^4.8.0",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
