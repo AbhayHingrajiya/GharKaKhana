@@ -39,6 +39,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
+      {/* <AdminConsumer /> */}
       <div className="flex-1 p-8">
         {divUser === 'provider' ? (
           <AdminProvider />
