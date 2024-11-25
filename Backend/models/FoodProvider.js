@@ -28,6 +28,14 @@ const foodProviderSchema = new Schema({
     type: String,
     required: true,
     minlength: 6 // Ensures password has a minimum length of 6 characters
+  },
+  negativeScore: {
+    type: Number,
+    default: 0
+  },
+  blockStatus: {
+    type: Boolean,
+    default: false
   }
 });
 

@@ -34,7 +34,7 @@ const ConsumerOrderList = () => {
                 <ExpandableDiv title="Pending Orders" defaultExpand={true} theme={true}>
                     <div>
                         {pendingOrders.map(order => {
-                            const { _id, consumerId, paymentMethod, consumerAddress, status, dishPrice, gstPrice, deliveryPrice, totalPrice, createdAt, dishInfo, deliveryDate } = order;
+                            const { _id, consumerId, paymentMethod, consumerAddress, status, dishPrice, gstPrice, deliveryPrice, totalPrice, createdAt, dishInfo, deliveryDate, cancelDishes } = order;
 
                             const dishDetails = Object.entries(dishInfo).map(([dishId, quantity]) => ({
                                 dishId,
@@ -44,25 +44,33 @@ const ConsumerOrderList = () => {
                             const now = new Date();
                             const dateString = new Date(deliveryDate).toLocaleString();
                             const localDate = new Date(dateString);
-                            if(localDate < now){
+                            let flagForCancleOrder = false;
+                            let cancleDishIds = [];
+                            if(localDate < now && status != 'confirmed'){
                                 ( async () => {
-                                    console.log('function call============')
                                     try {
                                         const res = await axios.post('/api/cancelOrderConsumer', { orderId: _id, dishDetails });
                                         
-                                        if (res.status >= 200 && res.status < 300) {
+                                        if (res.status >= 200 && res.status < 300 && res.data.orderStatus) {
                                             console.log('Order cancelled successfully:', res.data);
+                                            flagForCancleOrder = true;
                                             alert('One Order is Cancled')
-                                        } else {
+                                        }if (res.status >= 200 && res.status < 300 && !res.data.orderStatus) {
+                                            console.log('Order confirm successfully:', res.data);
+                                            cancleDishIds.push([...res.data.cancleDishIds])
+                                            alert('Some Dishes are Cancled')
+                                        }else {
                                             console.error('Error in cancelOrderConsumer get res:', res.status, res.data);
                                         }
                                     } catch (error) {
                                         console.error('Error in cancelOrderConsumer at frontend side:', error);
                                     }                                    
                                 })();
-                                return(
-                                    <></>
-                                );
+                                if(flagForCancleOrder){
+                                    return(
+                                        <></>
+                                    );
+                                }
                             }
 
                             return (
@@ -71,13 +79,14 @@ const ConsumerOrderList = () => {
                                         <div className="flex flex-wrap gap-4">
                                             {dishDetails.map(({ dishId, quantity }) => {
                                                 const dishDetail = dishesInfo.get(dishId);
+                                                const dishTheme = cancelDishes.includes(dishId)
 
                                                 return (
                                                     <DishCard
                                                         dish={dishDetail?.dishDetails} // Use optional chaining to avoid errors
                                                         item={dishDetail?.itemDetails} // Use optional chaining to avoid errors
                                                         Quantity={quantity}
-                                                        theme={true}
+                                                        theme={ !dishTheme }
                                                         userType='consumerOrder'
                                                     />
                                                 );

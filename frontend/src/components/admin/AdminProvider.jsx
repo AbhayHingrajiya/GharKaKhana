@@ -163,6 +163,7 @@ const AdminProvider = () => {
                         <h2 className="text-2xl font-bold">{provider.providerInfo.name}</h2>
                         <p className="text-gray-600">Email: {provider.providerInfo.email}</p>
                         <p className="text-gray-600">Phone: {provider.providerInfo.phoneNumber}</p>
+                        <p className="text-gray-600">Negative Score: { provider.providerInfo.negativeScore ? provider.providerInfo.negativeScore : 0 }</p>
                     </motion.div>
 
                     {/* Expanded Provider Details - Showing Dishes */}

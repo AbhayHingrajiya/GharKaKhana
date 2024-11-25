@@ -57,6 +57,10 @@ const orderInfoSchema = new Schema({
     of: Boolean,
     required: true
   },
+  cancelDishes: {
+    type: [Schema.Types.ObjectId],
+    default: []
+  },
   createdAt: {
     type: Date,
     default: Date.now

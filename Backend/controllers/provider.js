@@ -272,12 +272,6 @@ export const getOTPforDelivery = async (req, res) => {
             })
           );
 
-          console.log('======================')
-          console.log(order._id)
-          console.log(order.dishInfo)
-          console.log(dishIds)
-          console.log(dishStatuses)
-
           for (const [index, dishStatus] of dishStatuses.entries()) {
             console.log(dishStatus.readyForDelivery)
             if (!dishStatus.readyForDelivery && dishIds[index] !== dishId) {

@@ -4,6 +4,8 @@ import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
 import DishStatus from '../models/DishStatus.js';
 import { io } from '../index.js';
+import FoodProvider from '../models/FoodProvider.js';
+import mongoose from 'mongoose';
 
 export const consumerGetDishInfo = async (req, res) => {
     const { cityName, postcode} = req.body;
@@ -173,7 +175,7 @@ export const getPendingOrdersConsumer = async (req, res) => {
     const consumerId = req.userId;
     const orders = await OrderInfo.find({
       consumerId: consumerId,
-      status: 'pending'
+      status: { $in: ['pending', 'confirmed'] }
     });
 
     const updatedDishInfo = new Map(); // Temporary holder for updated dishInfo
@@ -195,6 +197,7 @@ export const getPendingOrdersConsumer = async (req, res) => {
 
         // Fetch related item details from ItemInfo
         const itemDetails = await ItemDetails.find({ dishId: dishId });
+        
         if (!itemDetails || itemDetails.length === 0) {
           console.log(`No item details found for dishId: ${dishId}`);
         }
@@ -202,7 +205,7 @@ export const getPendingOrdersConsumer = async (req, res) => {
         // Attach the details to the updatedDishInfo map
         updatedDishInfo.set(dishId, {
           dishDetails: dishDetails,
-          itemDetails: itemDetails
+          itemDetails: itemDetails,
         });
       }
     }
@@ -223,48 +226,85 @@ export const cancelOrderConsumer = async (req, res) => {
   const consumerId = req.userId; // Get consumer ID from the request
   const { orderId, dishDetails } = req.body; // Destructure orderId and dishDetails from request body
 
-  if (consumerId) {
+  if (!consumerId) {
+    return res.status(400).json({ error: 'Consumer ID is missing.' });
+  }
+
+  try {
+    let flag = true;
+
+    // Loop through each dishDetail to update quantities
+    for (const { dishId, quantity } of dishDetails) {
       try {
-          // Update the order status to 'canceled'
-          const result = await OrderInfo.updateOne(
-              { _id: orderId, consumerId: consumerId }, // Query to find the order
-              { $set: { status: 'canceled' } } // Update the status to 'canceled'
+        // Fetch the current DishStatus for the dishId
+        const dishStatus = await DishStatus.findOne({ dishId });
+
+        if (!dishStatus) {
+          return res.status(404).json({ error: `Dish not found: ${dishId}` });
+        }
+
+        if (!dishStatus.readyForDelivery) {
+          // Decrease quantity from pendingQuantity
+          dishStatus.pendingQuantity = Math.max((dishStatus.pendingQuantity || 0) - quantity, 0);
+          
+          // Add quantity to cancelQuantity
+          dishStatus.cancelQuantity = (dishStatus.cancelQuantity || 0) + quantity;
+
+          // Save the updated status
+          await dishStatus.save();
+          await OrderInfo.findByIdAndUpdate(
+            orderId,
+            { $push: { cancelDishes: dishId } },
+            { new: true }
           );
 
-          if (result.modifiedCount === 0) {
-              return res.status(404).json({ error: 'cancelOrderConsumer: Order not found or already canceled.' });
+          const providerIdforDish = await DishInfo.findOne({ _id: new mongoose.Types.ObjectId(dishId) }).select('providerId');
+
+          if (!providerIdforDish) {
+            return res.status(404).json({ error: `Provider not found for dish: ${dishId}` });
           }
 
-          // Loop through each dishDetail to update quantities
-          for (const { dishId, quantity } of dishDetails) {
-              try {
-                  // Fetch the current DishStatus for the dishId
-                  const dishStatus = await DishStatus.findOne({ dishId });
+          const updatedProvider = await FoodProvider.findByIdAndUpdate(
+            providerIdforDish.providerId,
+            {
+              $inc: { negativeScore: 10 }, // Increment negativeScore by 10
+            },
+            { new: true } // Return the updated document
+          );
 
-                  if (dishStatus) {
-                      // Decrease quantity from pendingQuantity
-                      dishStatus.pendingQuantity = Math.max((dishStatus.pendingQuantity || 0) - quantity, 0);
-                      
-                      // Add quantity to cancelQuantity
-                      dishStatus.cancelQuantity = (dishStatus.cancelQuantity || 0) + quantity;
-
-                      // Save the updated status
-                      await dishStatus.save();
-                  } else {
-                      console.error(`cancelOrderConsumer: Dish status for ${dishId} not found.`);
-                  }
-              } catch (error) {
-                  console.error(`cancelOrderConsumer: Error processing dish with id ${dishId}:`, error);
-              }
+          if (updatedProvider.negativeScore > 100) {
+            // If negativeScore exceeds 100, update blockStatus to true
+            await FoodProvider.findByIdAndUpdate(
+              providerIdforDish.providerId,
+              { blockStatus: true }, // Set blockStatus to true
+              { new: true }
+            );
           }
-
-          // Respond with success
-          res.status(200).json({ message: 'Order canceled successfully.' });
+        } else {
+          flag = false;
+        }
       } catch (error) {
-          console.error('cancelOrderConsumer: Error canceling order:', error);
-          res.status(500).json({ error: 'cancelOrderConsumer: Error canceling order.' });
+        console.error(`Error processing dish with id ${dishId}:`, error);
+        // Continue processing other dishes even if an error occurs
+        flag = false;
       }
-  } else {
-      res.status(400).json({ error: 'cancelOrderConsumer: Consumer ID is missing.' });
+    }
+
+    // Update the order status based on flag
+    const updatedOrder = await OrderInfo.updateOne(
+      { _id: orderId, consumerId: consumerId },
+      { $set: { status: flag ? 'canceled' : 'confirmed' } }
+    );
+
+    if (updatedOrder.modifiedCount === 0) {
+      return res.status(404).json({ error: 'Order not found or already processed.' });
+    }
+
+    // Respond with success
+    res.status(200).json({ orderStatus: flag ? 'canceled' : 'confirmed' });
+
+  } catch (error) {
+    console.error('Error canceling order:', error);
+    res.status(500).json({ error: 'Error canceling order.' });
   }
 };
