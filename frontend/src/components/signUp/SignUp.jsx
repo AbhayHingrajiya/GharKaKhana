@@ -131,7 +131,7 @@ const SignUp = () => {
                     }));
                     
                     alert('You are sign up successfully')
-                    navigate('/deliveryHomePage');
+                    navigate('/deliveryBoyHomePage');
                 }
             } catch (error) {
                 setMessage('Your data filds is not valid.');

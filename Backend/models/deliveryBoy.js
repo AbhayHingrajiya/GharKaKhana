@@ -50,6 +50,10 @@ const deliveryBoySchema = new Schema({
     required: true,
     trim: true
   },
+  status: {
+    type: Boolean,
+    default: false
+  },
   password: {
     type: String,
     required: true,

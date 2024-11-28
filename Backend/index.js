@@ -11,7 +11,8 @@ import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider } from './controllers/provider.js';
 import { getAdminProviderInfo, getAdminConsumerInfo } from './controllers/admin.js'
-import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer } from './controllers/consumer.js'
+import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer, denyOrderByDeliveryBoy } from './controllers/consumer.js'
+import { activeDeliveryBoy, acceptedOrderByDeliveryBoy } from './controllers/deliveryBoy.js'
 
 dotenv.config(); // Load environment variables
 
@@ -57,6 +58,11 @@ app.post('/api/addNewAddress', fetchUserIdMiddleware, addNewAddress);
 app.post('/api/addNewOrder', fetchUserIdMiddleware, addNewOrder);
 app.post('/api/getPendingOrdersConsumer', fetchUserIdMiddleware, getPendingOrdersConsumer);
 app.post('/api/cancelOrderConsumer', fetchUserIdMiddleware, cancelOrderConsumer);
+app.post('/api/denyOrderByDeliveryBoy', fetchUserIdMiddleware, denyOrderByDeliveryBoy);
+
+//deliveryBoy.js
+app.post('/api/activeDeliveryBoy', fetchUserIdMiddleware, activeDeliveryBoy);
+app.post('/api/acceptedOrderByDeliveryBoy', fetchUserIdMiddleware, acceptedOrderByDeliveryBoy);
 
 //admin.js 
 app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
@@ -66,10 +72,20 @@ app.post('/api/getAdminConsumerInfo',getAdminConsumerInfo);
 io.on('connection', (socket) => {
   console.log(`New client connected: ${socket.id}`);
 
-  // Example: Provider joining a room with their providerId
   socket.on('joinProviderRoom', (providerId) => {
     socket.join(providerId); // The provider joins their specific room
     console.log(`Provider ${providerId} joined room`);
+  });
+
+  socket.on('joinDeliveryBoyRoom', (deliveryBoyId) => {
+    socket.join(deliveryBoyId); // The delivery boy joins their specific room
+    console.log(`Delivery Boy ${deliveryBoyId} joined room`);
+  });
+
+  // Handle when the delivery boy leaves the room
+  socket.on('leaveDeliveryBoyRoom', (deliveryBoyId) => {
+    socket.leave(deliveryBoyId); // Remove the delivery boy from the room
+    console.log(`Delivery Boy ${deliveryBoyId} left the room`);
   });
 
   // Handle disconnection

@@ -13,7 +13,8 @@ import { ClimbingBoxLoader } from "react-spinners";
 import ConsumerHomePage from './components/foodConsumer/consumerHomePage/ConsumerHomePage';
 import ConsumerConfirmOrderPage from './components/foodConsumer/consumerConfirmOrderPage/ConsumerConfirmOrderPage';
 import ConsumerOrderList from './components/foodConsumer/consumerOrderList/ConsumerOrderList'
-import ProfilePage from './components/profilePage/ProfilePage';
+// import ProfilePage from './components/profilePage/ProfilePage';
+import DeliveryBoyHomePage from './components/foodDeliveryBoy/DeliveryBoyHomePage'
 
 function App() {
   const user = useSelector((state) => state.user);
@@ -79,7 +80,8 @@ function App() {
         <Route path="/providerOrderList" element={isLogedIn ? <ProviderOrderList /> : <Login />} />
         <Route path="/consumerHomePage" element={isLogedIn ? <ConsumerHomePage /> : <Login />} />
         <Route path="/consumerOrderList" element={isLogedIn ? <ConsumerOrderList /> : <Login />} />
-        <Route path="/profilePage" element={isLogedIn ? <ProfilePage /> : <Login />} />
+        {/* <Route path="/profilePage" element={isLogedIn ? <ProfilePage /> : <Login />} /> */}
+        <Route path="/deliveryBoyHomePage" element={isLogedIn ? <DeliveryBoyHomePage /> : <Login />} />
       </Routes>
     </Router>
   );

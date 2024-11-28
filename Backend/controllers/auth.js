@@ -1,5 +1,5 @@
 import FoodConsumer from '../models/FoodConsumer.js'; 
-import DeliveryBoy from '../models/deliveryBoy.js'; 
+import DeliveryBoy from '../models/DeliveryBoy.js'; 
 import FoodProvider from '../models/FoodProvider.js';
 import { generateTokenAndSetCookie } from '../lib/generateToken.js'
 import bcrypt from 'bcrypt';

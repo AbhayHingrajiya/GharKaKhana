@@ -34,7 +34,7 @@ const ConsumerOrderList = () => {
                 <ExpandableDiv title="Pending Orders" defaultExpand={true} theme={true}>
                     <div>
                         {pendingOrders.map(order => {
-                            const { _id, consumerId, paymentMethod, consumerAddress, status, dishPrice, gstPrice, deliveryPrice, totalPrice, createdAt, dishInfo, deliveryDate, cancelDishes } = order;
+                            const { _id, consumerId, paymentMethod, consumerAddress, status, dishPrice, gstPrice, deliveryPrice, totalPrice, createdAt, dishInfo, expectedDeliveryDate, cancelDishes } = order;
 
                             const dishDetails = Object.entries(dishInfo).map(([dishId, quantity]) => ({
                                 dishId,
@@ -42,7 +42,7 @@ const ConsumerOrderList = () => {
                             }));
 
                             const now = new Date();
-                            const dateString = new Date(deliveryDate).toLocaleString();
+                            const dateString = new Date(expectedDeliveryDate).toLocaleString();
                             const localDate = new Date(dateString);
                             let flagForCancleOrder = false;
                             let cancleDishIds = [];
@@ -101,7 +101,7 @@ const ConsumerOrderList = () => {
                                     >
                                         <h4 className="font-bold">Order Details</h4>
                                         <p><span className="font-semibold">Order Id:</span> {_id}</p>
-                                        {deliveryDate && <p><span className="font-semibold">Delivery Date:</span> {new Date(deliveryDate).toLocaleString()}</p>}
+                                        {expectedDeliveryDate && <p><span className="font-semibold">Delivery Date:</span> {new Date(expectedDeliveryDate).toLocaleString()}</p>}
                                         <p><span className="font-semibold">Status:</span> {status}</p>
                                         <p><span className="font-semibold">Total Price:</span> {totalPrice} RS.</p>
                                         <p><span className="font-semibold">Address:</span> {consumerAddress}</p>
