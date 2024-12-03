@@ -270,12 +270,6 @@ const makeRequestForDelivery = async (orderId, consumerId, dishDetail, address, 
       throw new Error('Consumer not found');
     }
 
-    // Fetch the active delivery boys based on the city and status
-    const activeDeliveryBoys = await DeliveryBoy.find({
-      cityName: cityName,   
-      status: true     
-    }).select('_id');
-
     // Get the dish details with provider info
     const dishIds = Array.from(dishDetail.keys()); // Extract dish IDs from the Map
     const dishes = await DishInfo.find({
@@ -309,20 +303,29 @@ const makeRequestForDelivery = async (orderId, consumerId, dishDetail, address, 
     const timeoutIds = []; // Store timeout IDs for each round
     let delay = 0; // Initial delay
 
-    // Emit the delivery request to each active delivery boy
-    for (const deliveryBoy of activeDeliveryBoys) {
-      if (stopFlags[orderId]) break;  // Stop all execution if the flag is set
-    
-      const timeoutId = setTimeout(() => {
-        if (stopLoop) return; // Do not proceed if stopLoop is true
-    
-        io.to(String(deliveryBoy._id)).emit('sendDeliveryRequest', orderDetails);
-        console.log(`Sent delivery request to DeliveryBoy: ${deliveryBoy._id}`);
-      }, delay);
+    while(!stopFlags[orderId]){
 
-      timeoutIds.push(timeoutId); // Keep track of the timeout ID
-    
-      delay = 180 * 1000; // Increment delay by 180 seconds (3 minutes)
+      // Fetch the active delivery boys based on the city and status
+      const activeDeliveryBoys = await DeliveryBoy.find({
+        cityName: cityName,   
+        status: true     
+      }).select('_id');
+
+      // Emit the delivery request to each active delivery boy
+      for (const deliveryBoy of activeDeliveryBoys) {
+        if (stopFlags[orderId]) break;  // Stop all execution if the flag is set
+      
+        const timeoutId = setTimeout(() => {
+          if (stopLoop) return; // Do not proceed if stopLoop is true
+      
+          io.to(String(deliveryBoy._id)).emit('sendDeliveryRequest', orderDetails);
+          console.log(`Sent delivery request to DeliveryBoy: ${deliveryBoy._id}`);
+        }, delay);
+
+        timeoutIds.push(timeoutId); // Keep track of the timeout ID
+      
+        delay = 180 * 1000; // Increment delay by 180 seconds (3 minutes)
+      }
     }
 
   } catch (error) {

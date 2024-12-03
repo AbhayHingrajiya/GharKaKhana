@@ -6,7 +6,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import connectMongoDB from './db/connectMongoDB.js'; 
 import { fetchUserIdMiddleware } from './middleware/fetchUserIdMiddleware.js';
-import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut } from "./controllers/auth.js";
+import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut, forgotPasswordSendOtp, resetPassword } from "./controllers/auth.js";
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider } from './controllers/provider.js';
@@ -38,6 +38,8 @@ app.post('/api/signUpFoodProvider', signUpFoodProvider);
 app.post('/api/signUpDeliveryBoy', signUpDeliveryBoy);
 app.post('/api/login', login);
 app.post('/api/signOut', signOut);
+app.post('/api/forgotPasswordSendOtp', forgotPasswordSendOtp);
+app.post('/api/resetPassword', fetchUserIdMiddleware, resetPassword);
 
 //generateToken.js
 app.post('/api/getUserId', getUserId);

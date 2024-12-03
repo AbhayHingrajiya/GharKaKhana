@@ -15,6 +15,7 @@ import ConsumerConfirmOrderPage from './components/foodConsumer/consumerConfirmO
 import ConsumerOrderList from './components/foodConsumer/consumerOrderList/ConsumerOrderList'
 // import ProfilePage from './components/profilePage/ProfilePage';
 import DeliveryBoyHomePage from './components/foodDeliveryBoy/DeliveryBoyHomePage'
+import ForgotPassword from './components/forgotPassword/ForgotPassword'
 
 function App() {
   const user = useSelector((state) => state.user);
@@ -76,6 +77,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path="/providerHomePage" element={isLogedIn ? <ProviderHomePage /> : <Login />} />
         <Route path="/providerOrderList" element={isLogedIn ? <ProviderOrderList /> : <Login />} />
         <Route path="/consumerHomePage" element={isLogedIn ? <ConsumerHomePage /> : <Login />} />

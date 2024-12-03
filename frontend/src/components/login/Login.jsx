@@ -34,7 +34,7 @@ const LoginForm = () => {
                 if(response.data.type === 'foodConsumer'){
                     navigate('/consumerHomePage');
                 }else if(response.data.type === 'deliveryBoy'){
-                    navigate('/deliveryHomePage');
+                    navigate('/deliveryBoyHomePage');
                 }else if(response.data.type === 'foodProvider'){
                     navigate('/providerHomePage');
                 }else{
@@ -74,8 +74,8 @@ const LoginForm = () => {
                 </div>
                 <div className="flex justify-between items-center mb-6">
                     <a
-                        className="text-blue-600 hover:text-blue-700 focus:text-blue-700 active:text-blue-800 duration-200 transition ease-in-out"
-                        onClick={(e) => navigate('/forgot-password')}
+                        className="text-blue-600 hover:text-blue-700 focus:text-blue-700 active:text-blue-800 duration-200 transition ease-in-out cursor-pointer"
+                        onClick={(e) => navigate('/forgotPassword')}
                     >
                         Forgot password?
                     </a>

@@ -11,6 +11,7 @@ import mongoose from 'mongoose';
 export const activeDeliveryBoy = async (req, res) => {
   try {
     const deliveryBoyId = req.userId;
+
     // Update the status of the delivery boy to active (status: true)
     const updatedDeliveryBoy = await DeliveryBoy.findByIdAndUpdate(
       deliveryBoyId,
@@ -26,9 +27,8 @@ export const activeDeliveryBoy = async (req, res) => {
     const orders = await OrderInfo.find({ deliveryBoyId })
       .populate('consumerId')  
       .populate('deliveryBoyId') 
-      .populate('dishInfo.providerId'); // Populate providerId within dishInfo
+      .populate('dishInfo.providerId');
 
-      console.log(orders)
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: 'No orders found for the given delivery boy' });
     }
@@ -39,10 +39,8 @@ export const activeDeliveryBoy = async (req, res) => {
       const deliveryBoy = orderInfo.deliveryBoyId;
       const address = orderInfo.consumerAddress;
 
-      console.log(orderInfo.dishInfo)
       // Extract dish IDs from dishInfo Map
       const dishIds = Array.from(orderInfo.dishInfo.keys());
-      console.log(dishIds)
 
       // Ensure all dishIds are valid ObjectIds before querying
       const validDishIds = dishIds.filter(dishId => mongoose.Types.ObjectId.isValid(dishId));
@@ -51,24 +49,24 @@ export const activeDeliveryBoy = async (req, res) => {
         return res.status(404).json({ message: 'No valid dish IDs found' });
       }
 
-      // Fetch dishes for the valid dishIds
-      const dishes = await DishInfo.find({ '_id': { $in: validDishIds } });
+      // Fetch dishes for the valid dishIds with populated provider details
+      const dishes = await DishInfo.find({ '_id': { $in: validDishIds } }).populate('providerId');
 
       // Prepare canceled dishes and OTP map
       const canceledDishes = orderInfo.cancelDishes || [];
       const otpMap = orderInfo.otp || {};
 
       const dishDetails = dishes
-        .filter(dish => !canceledDishes.includes(dish._id.toString())) 
+        .filter(dish => !canceledDishes.includes(dish._id.toString())) // Exclude canceled dishes
         .map(dish => ({
           dishId: dish._id,
           name: dish.dishName,
           provider: {
-            name: dish.providerId.name,
-            phone: dish.providerId.phoneNumber,
-            address: `${dish.providerId.address}, ${dish.providerId.city}, ${dish.providerId.pincode}`,
+            name: dish.providerId?.name || 'N/A', // Ensure safe access in case providerId is null
+            phone: dish.providerId?.phoneNumber || 'N/A',
+            address: `${dish.address || 'N/A'}, ${dish.cityName || 'N/A'}, ${dish.pincode || 'N/A'}`,
           },
-          otp: otpMap[dish._id.toString()] || '',
+          otp: otpMap.get(dish._id.toString()) || '', // Add OTP for the dish
         }));
 
       const timeRemaining = Math.max(0, Math.floor((new Date(orderInfo.expectedDeliveryDate) - new Date()) / 1000));
@@ -97,8 +95,6 @@ export const activeDeliveryBoy = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-
 
 export const acceptedOrderByDeliveryBoy = async (req, res) => {
   const deliveryBoyId = req.userId;
