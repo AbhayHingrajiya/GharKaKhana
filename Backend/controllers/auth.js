@@ -50,42 +50,55 @@ export const signUpFoodConsumer = async (req, res) => {
 }; 
 
 export const signUpFoodProvider = async (req, res) => {
-    const { name, email, phoneNumber, password } = req.body;
-    const salt = await bcrypt.genSalt(10);
-		const hashedPassword = await bcrypt.hash(password, salt);
+  const { 
+    name, 
+    email, 
+    phoneNumber, 
+    password, 
+    aadhaarPhotoProvider, 
+    aadhaarNumberProvider 
+  } = req.body;
 
-    try {
-    // Create a new instance of the foodProvider model
+  try {
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create a new instance of the FoodProvider model
     const foodProvider = new FoodProvider({
-        name,
-        email,
-        phoneNumber,
-        password: hashedPassword
+      name,
+      email,
+      phoneNumber,
+      password: hashedPassword,
+      aadhaarPhoto: aadhaarPhotoProvider, // Ensure this is sent as Buffer or handle the conversion
+      aadhaarNumber: aadhaarNumberProvider
     });
 
     // Save the foodProvider to the database
     await foodProvider.save();
 
+    // Generate token and set cookie
     generateTokenAndSetCookie(foodProvider._id, res);
 
-    // Send a response back to the client
+    // Send a success response
     res.status(201).json({
-        message: 'foodProvider created successfully',
-        foodProvider: {
+      message: 'Food Provider created successfully',
+      foodProvider: {
         id: foodProvider._id,
         name: foodProvider.name,
         email: foodProvider.email,
-        phoneNumber: foodProvider.phoneNumber
-        }
+        phoneNumber: foodProvider.phoneNumber,
+        aadhaarNumber: foodProvider.aadhaarNumber,
+      },
     });
-    } catch (error) {
-    // Handle errors, such as duplicate email or phone number
+  } catch (error) {
+    // Handle errors such as duplicate email or Aadhaar number
     res.status(400).json({
-        message: 'Error creating foodProvider',
-        error: error.message
+      message: 'Error creating Food Provider',
+      error: error.message,
     });
-    }
-}; 
+  }
+};
 
 export const signUpDeliveryBoy = async (req, res) => {
   upload.single('licensePhoto')(req, res, async (err) => {

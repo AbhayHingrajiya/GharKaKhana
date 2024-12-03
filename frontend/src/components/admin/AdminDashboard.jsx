@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import AdminProvider from './AdminProvider';
 import AdminConsumer from './AdminConsumer';
+import AdminDeliveryBoy from './AdminDeliveryBoy';
+import AdminVerifyUser from './AdminVerifyUser';
+import AddAdminForm from './AddAdminForm';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminDashboard = () => {
@@ -35,6 +38,18 @@ const AdminDashboard = () => {
           >
             <a className="hover:underline">Food Deliver</a>
           </li>
+          <li
+            className={`mb-4 cursor-pointer ${divUser === 'verify' ? 'font-bold underline' : ''}`}
+            onClick={() => handleSetDivUser('verify')}
+          >
+            <a className="hover:underline">Varify User</a>
+          </li>
+          <li
+            className={`mb-4 cursor-pointer ${divUser === 'addAdmin' ? 'font-bold underline' : ''}`}
+            onClick={() => handleSetDivUser('addAdmin')}
+          >
+            <a className="hover:underline">Add new Admin</a>
+          </li>
         </ul>
       </div>
 
@@ -45,6 +60,12 @@ const AdminDashboard = () => {
           <AdminProvider />
         ) : divUser === 'consumer' ? (
           <AdminConsumer />
+        ) : divUser === 'deliver' ? (
+          <AdminDeliveryBoy />
+        ) : divUser === 'verify' ? (
+          <AdminVerifyUser />
+        ) : divUser === 'addAdmin' ? (
+          <AddAdminForm />
         ) : (
           <AdminConsumer />
         )}

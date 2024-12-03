@@ -24,6 +24,16 @@ const foodProviderSchema = new Schema({
     trim: true, // Removes leading and trailing spaces
     match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number'] // Validates a 10-digit phone number format
   },
+  aadhaarPhoto: {
+    type: Buffer, // Store photo as binary data (bytes)
+    required: [true, 'Aadhaar photo is required'],
+  },
+  aadhaarNumber: {
+    type: String,
+    required: [true, 'Aadhaar number is required'],
+    unique: true,
+    match: [/^\d{12}$/, 'Enter a valid 12-digit Aadhaar number'],
+  },
   password: {
     type: String,
     required: true,

@@ -57,6 +57,8 @@ const SignUp = () => {
             let ProviderEmail=document.getElementById('emailProvider').value;
             let ProviderPhoneNumber=document.getElementById('phoneNumberProvider').value;
             let ProviderPassword=document.getElementById('passwordProvider').value;
+            let aadhaarPhotoProvider=document.getElementById('aadhaarPhotoProvider').files[0];
+            let aadhaarNumberProvider=document.getElementById('aadhaarNumberProvider').value;
             let ProviderRepassword=document.getElementById('confirmPasswordProvider').value;
 
             if (ProviderPassword !== ProviderRepassword) {
@@ -65,7 +67,7 @@ const SignUp = () => {
             }
 
             try {
-                const response = await axios.post('/api/signUpFoodProvider', {name: ProviderName, email: ProviderEmail, phoneNumber: ProviderPhoneNumber, password: ProviderPassword});
+                const response = await axios.post('/api/signUpFoodProvider', {name: ProviderName, email: ProviderEmail, phoneNumber: ProviderPhoneNumber, password: ProviderPassword, aadhaarPhotoProvider, aadhaarNumberProvider});
 
                 if (response.data.error) {
                     setMessage(response.data.error);
@@ -300,6 +302,31 @@ const SignUp = () => {
                                     name="phoneNumberProvider"
                                     autoComplete="off"
                                     placeholder="Phone Number"
+                                    className="w-full px-4 py-2 mt-1 text-base text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300"
+                                    required
+                                />
+                            </div>
+                            <div className="mt-4">
+                            
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    id="aadhaarPhotoProvider"
+                                    name="aadhaarPhotoProvider"
+                                    autoComplete="off"
+                                    placeholder="Aadhaar Photo"
+                                    className="w-full px-4 py-2 mt-1 text-base text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300"
+                                    required
+                                />
+                            </div>
+                            <div className="mt-4">
+                            
+                                <input
+                                    type="text"
+                                    id="AadhaarNumberProvider"
+                                    name="AadhaarNumberProvider"
+                                    autoComplete="off"
+                                    placeholder="Aadhaar Number"
                                     className="w-full px-4 py-2 mt-1 text-base text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300"
                                     required
                                 />

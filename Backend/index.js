@@ -10,7 +10,7 @@ import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signO
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider } from './controllers/provider.js';
-import { getAdminProviderInfo, getAdminConsumerInfo } from './controllers/admin.js'
+import { getAdminProviderInfo, getAdminConsumerInfo, getAdminDeliveryBoyInfo, getAllPendingVerificationRequests, addNewAdmin } from './controllers/admin.js'
 import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer, denyOrderByDeliveryBoy } from './controllers/consumer.js'
 import { activeDeliveryBoy, acceptedOrderByDeliveryBoy } from './controllers/deliveryBoy.js'
 
@@ -69,6 +69,9 @@ app.post('/api/acceptedOrderByDeliveryBoy', fetchUserIdMiddleware, acceptedOrder
 //admin.js 
 app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
 app.post('/api/getAdminConsumerInfo',getAdminConsumerInfo);
+app.post('/api/getAdminDeliveryBoyInfo',getAdminDeliveryBoyInfo);
+app.post('/api/getAllPendingVerificationRequests', fetchUserIdMiddleware, getAllPendingVerificationRequests);
+app.post('/api/addNewAdmin', fetchUserIdMiddleware, addNewAdmin);
 
 // Socket.IO Connection Handler
 io.on('connection', (socket) => {

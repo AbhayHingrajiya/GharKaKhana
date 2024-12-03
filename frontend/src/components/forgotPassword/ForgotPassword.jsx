@@ -53,6 +53,9 @@ const ForgotPassword = () => {
     } else {
       setOtpError('Invalid OTP. Please try again.');
       setWrongOtpCount((prev) => prev + 1);
+      if(wrongOtpCount == 5){
+        navigate('/login');
+      }
     }
   };
 

@@ -4,6 +4,8 @@ import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
 import DishStatus from '../models/DishStatus.js';
 import OrderInfo from '../models/OrderInfo.js';
+import DeliveryBoy from '../models/DeliveryBoy.js';
+import AdminDetails from '../models/AdminDetails.js';
 
 export const getAdminProviderInfo = async (req, res) => {
     try {
@@ -110,3 +112,173 @@ export const getAdminConsumerInfo = async (req, res) => {
       return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+export const getAdminDeliveryBoyInfo = async (req, res) => {
+  try {
+      // Fetch all delivery boys
+      const deliveryBoys = await DeliveryBoy.find({}).lean();
+
+      // Fetch all orders and map them to their respective delivery boys
+      const orders = await OrderInfo.find({}).populate('consumerId', 'name').lean();
+
+      const result = deliveryBoys.map((deliveryBoy) => {
+          // Filter orders assigned to the current delivery boy
+          const deliveryBoyOrders = orders
+              .filter((order) => order.deliveryBoyId?.toString() === deliveryBoy._id.toString())
+              .map((order) => ({
+                  _id: order._id,
+                  orderName: `Order ${order._id}`,
+                  consumerAddress: order.consumerAddress,
+                  dishIds: Object.keys(order.dishInfo || {}), // Convert Map to object and get keys
+                  cancelDishIds: order.cancelDishes.map((dishId) => dishId.toString()),
+                  deliveryDate: order.completeDeliveryDate
+                      ? order.completeDeliveryDate.toISOString().split('T')[0]
+                      : 'Pending',
+                  status: order.status,
+              }));
+
+          return {
+              deliveryBoyInfo: {
+                  _id: deliveryBoy._id,
+                  name: deliveryBoy.name,
+                  email: deliveryBoy.email,
+                  phoneNumber: deliveryBoy.phoneNumber,
+                  vehicleName: deliveryBoy.vehicleName,
+                  vehicleNumber: deliveryBoy.vehicleNumber,
+                  licenseNumber: deliveryBoy.licenseNumber,
+                  cityName: deliveryBoy.cityName,
+              },
+              orders: deliveryBoyOrders,
+          };
+      });
+
+      // Send the response
+      res.status(200).json(result);
+  } catch (error) {
+      console.error('Error fetching delivery boy info:', error);
+      res.status(500).json({ error: 'Failed to fetch delivery boy info' });
+  }
+};
+
+export const getAllPendingVerificationRequests = async (req, res) => {
+  const { cityName } = req.body;
+
+  try {
+    // Fetch pending providers and delivery boys matching the cityName
+    const [providers, deliveryBoys] = await Promise.all([
+      FoodProvider.find({ cityName, verificationStatus: 'pending' }).select(
+        '_id name email phoneNumber adharCardPhoto adharCardNumber'
+      ),
+      DeliveryBoy.find({ cityName, verificationStatus: 'pending' }).select(
+        '_id name email phoneNumber licenseNumber licensePhoto vehicleName vehicleNumber cityName'
+      ),
+    ]);
+
+    // Format the data into the desired response structure
+    const formattedProviders = providers.map((provider) => ({
+      _id: provider._id,
+      name: provider.name,
+      email: provider.email,
+      phoneNumber: provider.phoneNumber,
+      type: 'provider',
+      adharCardPhoto: provider.adharCardPhoto,
+    }));
+
+    const formattedDeliveryBoys = deliveryBoys.map((deliveryBoy) => ({
+      _id: deliveryBoy._id,
+      name: deliveryBoy.name,
+      email: deliveryBoy.email,
+      phoneNumber: deliveryBoy.phoneNumber,
+      type: 'deliveryBoy',
+      licenseNumber: deliveryBoy.licenseNumber,
+      licensePhoto: deliveryBoy.licensePhoto,
+      vehicleName: deliveryBoy.vehicleName,
+      vehicleNumber: deliveryBoy.vehicleNumber,
+      cityName: deliveryBoy.cityName,
+    }));
+
+    // Combine the results
+    const combinedResults = [...formattedProviders, ...formattedDeliveryBoys];
+
+    // Send the response
+    res.status(200).json(combinedResults);
+  } catch (error) {
+    console.error('Error fetching pending verification requests:', error);
+    res.status(500).json({ message: 'Failed to fetch pending verification requests' });
+  }
+};
+
+export const addNewAdmin = async (req, res) => {
+  const {
+    name,
+    phoneNumber,
+    email,
+    aadhaarPhoto,
+    aadhaarNumber,
+    password,
+    city,
+  } = req.body;
+
+  const adminId = req.userId; 
+
+  try {
+    // Validate required fields
+    if (
+      !name ||
+      !phoneNumber ||
+      !email ||
+      !aadhaarPhoto ||
+      !aadhaarNumber ||
+      !password ||
+      !city ||
+      !adminId
+    ) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if the admin already exists (email, phone number, Aadhaar number should be unique)
+    const existingAdmin = await AdminDetails.findOne({
+      $or: [{ email }, { phoneNumber }, { aadhaarNumber }],
+    });
+    if (existingAdmin) {
+      return res.status(400).json({
+        message: 'Admin with this email, phone number, or Aadhaar already exists',
+      });
+    }
+
+    // Create a new AdminDetails instance
+    const newAdmin = new AdminDetails({
+      name,
+      phoneNumber,
+      email,
+      aadhaarPhoto: Buffer.from(aadhaarPhoto, 'base64'), // Convert photo to bytes if sent as Base64
+      aadhaarNumber,
+      password,
+      city,
+      responsibleAdmin: adminId,
+    });
+
+    // Save the new admin to the database
+    await newAdmin.save();
+
+    // Respond with success
+    res.status(201).json({
+      message: 'Admin added successfully',
+      admin: {
+        id: newAdmin._id,
+        name: newAdmin.name,
+        email: newAdmin.email,
+        phoneNumber: newAdmin.phoneNumber,
+        city: newAdmin.city,
+        responsibleAdmin: newAdmin.responsibleAdmin,
+      },
+    });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({
+      message: 'An error occurred while adding the admin',
+      error: error.message,
+    });
+  }
+};
+
