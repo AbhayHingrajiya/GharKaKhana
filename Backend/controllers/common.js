@@ -1,6 +1,7 @@
 import FoodConsumer from '../models/FoodConsumer.js'; 
 import DeliveryBoy from '../models/DeliveryBoy.js'; 
 import FoodProvider from '../models/FoodProvider.js';
+import AdminDetails from '../models/AdminDetails.js';
 import axios from 'axios';
 
 export const getMe = async (req, res) => {
@@ -15,7 +16,8 @@ export const getMe = async (req, res) => {
             const userTypes = [
                 { type: 'foodConsumer', model: FoodConsumer },
                 { type: 'deliveryBoy', model: DeliveryBoy },
-                { type: 'foodProvider', model: FoodProvider }
+                { type: 'foodProvider', model: FoodProvider },
+                { type: 'admin', model: AdminDetails }
             ];
       
             for (const userType of userTypes) {

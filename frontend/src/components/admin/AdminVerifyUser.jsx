@@ -8,48 +8,21 @@ const AdminVerifyUser = () => {
     const [expandedUserId, setExpandedUserId] = useState(null);
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState('');
-    const [pendingUsers, setPendingUsers] = useState([])
-
-    // Static data for demonstration purposes
-    // const pendingUsers = [
-    //     {
-    //         _id: '123',
-    //         name: 'Provider One',
-    //         email: 'provider1@example.com',
-    //         phoneNumber: '1234567890',
-    //         type: 'provider',
-    //         adharCardPhoto: logo,
-    //     },
-    //     {
-    //         _id: '456',
-    //         name: 'Delivery Boy One',
-    //         email: 'deliveryboy1@example.com',
-    //         phoneNumber: '9876543210',
-    //         type: 'deliveryBoy',
-    //         licenseNumber: 'LIC12345',
-    //         licensePhoto: logo,
-    //         vehicleName: 'Bike',
-    //         vehicleNumber: 'ABC123',
-    //         cityName: 'City A',
-    //     },
-    // ];
+    const [pendingUsers, setPendingUsers] = useState([]);
+    const [ roleAndNumber, setRoleAndNumber ] = useState({role: '',number: ''})
 
     useEffect(() => {
         const fetchPendingVerificationRequests = async () => {
           try {
-            setLoading(true);
-            const res = await axios.post('/api/getAllPendingVerificationRequests', { cityName });
+            const res = await axios.post('/api/getAllPendingVerificationRequests');
+            console.log(res.data)
             setPendingUsers(res.data); // Assuming the response contains the pending users' data
           } catch (err) {
             console.error('Failed to fetch pending verification requests', err);
-          } finally {
-            setLoading(false);
           }
         };
     
-        if (cityName) {
-          fetchPendingVerificationRequests();
-        }
+        fetchPendingVerificationRequests();
       }, []);
 
     const toggleUserExpansion = (id) => {
@@ -64,14 +37,16 @@ const AdminVerifyUser = () => {
         setComment(''); // Clear comment field
     };
 
-    const openImageModal = (imageUrl) => {
+    const openImageModal = (imageUrl, number, role) => {
         setSelectedImage(imageUrl);
         setShowImageModal(true);
+        setRoleAndNumber({role: role,number: number})
     };
 
     const closeImageModal = () => {
         setShowImageModal(false);
         setSelectedImage('');
+        setRoleAndNumber({role: '',number: ''})
     };
 
     return (
@@ -114,12 +89,13 @@ const AdminVerifyUser = () => {
                                         <p className="text-gray-600">ID: {user._id}</p>
                                         {user.type === 'provider' && (
                                             <div>
-                                                <p className="text-gray-600">Adhar Card:</p>
+                                            <p className="text-gray-600">Aadhar Card Number: {user.aadharCardNumber}</p>
+                                                <p className="text-gray-600">Aadhar Card:</p>
                                                 <img
-                                                    src={user.adharCardPhoto}
+                                                    src={user.aadhaarCardPhoto}
                                                     alt="Adhar Card"
                                                     className="w-48 h-auto border rounded mt-2 cursor-pointer"
-                                                    onClick={() => openImageModal(user.adharCardPhoto)}
+                                                    onClick={() => openImageModal(user.aadhaarCardPhoto,user.aadharCardNumber,'provider')}
                                                 />
                                             </div>
                                         )}
@@ -134,7 +110,7 @@ const AdminVerifyUser = () => {
                                                     src={user.licensePhoto}
                                                     alt="License Photo"
                                                     className="w-48 h-auto border rounded mt-2 cursor-pointer"
-                                                    onClick={() => openImageModal(user.licensePhoto)}
+                                                    onClick={() => openImageModal(user.licensePhoto,user.vehicleNumber,'delivery')}
                                                 />
                                             </div>
                                         )}
@@ -183,12 +159,20 @@ const AdminVerifyUser = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="bg-white p-4 rounded-lg shadow-lg"
+                        className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full"
                     >
-                        <img src={selectedImage} alt="Enlarged" className="max-w-full max-h-full" />
+                        <img 
+                            src={selectedImage} 
+                            alt="Aadhaar Card" 
+                            className="w-[600px] h-[400px] object-cover rounded border border-gray-300 shadow-md mb-4" 
+                        />
+                        <div className="text-center">
+                            <p className="text-lg font-semibold text-gray-700 mb-2">{(roleAndNumber.role == 'provider') ? 'Aadhaar Card Number' : 'Vehicle Number' }</p>
+                            <p className="text-xl font-bold text-gray-900">{roleAndNumber.number}</p>
+                        </div>
                         <button
                             onClick={closeImageModal}
-                            className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                            className="mt-4 bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 w-full"
                         >
                             Close
                         </button>

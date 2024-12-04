@@ -57,8 +57,9 @@ const SignUp = () => {
             let ProviderEmail=document.getElementById('emailProvider').value;
             let ProviderPhoneNumber=document.getElementById('phoneNumberProvider').value;
             let ProviderPassword=document.getElementById('passwordProvider').value;
-            let aadhaarPhotoProvider=document.getElementById('aadhaarPhotoProvider').files[0];
-            let aadhaarNumberProvider=document.getElementById('aadhaarNumberProvider').value;
+            let CityProvider=document.getElementById('cityProvider').value;
+            let AadhaarPhotoProvider=document.getElementById('aadhaarPhotoProvider').files[0];
+            let AadhaarNumberProvider=document.getElementById('aadhaarNumberProvider').value;
             let ProviderRepassword=document.getElementById('confirmPasswordProvider').value;
 
             if (ProviderPassword !== ProviderRepassword) {
@@ -67,7 +68,21 @@ const SignUp = () => {
             }
 
             try {
-                const response = await axios.post('/api/signUpFoodProvider', {name: ProviderName, email: ProviderEmail, phoneNumber: ProviderPhoneNumber, password: ProviderPassword, aadhaarPhotoProvider, aadhaarNumberProvider});
+                const formData = new FormData();
+                formData.append('name', ProviderName);
+                formData.append('email', ProviderEmail);
+                formData.append('phoneNumber', ProviderPhoneNumber);
+                formData.append('cityName', CityProvider);
+                formData.append('password', ProviderPassword);
+                formData.append('aadhaarPhotoProvider', AadhaarPhotoProvider); // Add the file
+                formData.append('aadhaarNumberProvider', AadhaarNumberProvider);
+              
+                // Send POST request with formData
+                const response = await axios.post('/api/signUpFoodProvider', formData, {
+                  headers: {
+                    'Content-Type': 'multipart/form-data', // Required for file uploads
+                  },
+                });
 
                 if (response.data.error) {
                     setMessage(response.data.error);
@@ -83,6 +98,7 @@ const SignUp = () => {
                     navigate('/providerHomePage');
                 }
             } catch (error) {
+                console.error(error)
                 setMessage('Your data filds is not valid.');
             }
         }else if(signUpFor === 'deliveryPerson'){
@@ -309,6 +325,18 @@ const SignUp = () => {
                             <div className="mt-4">
                             
                                 <input
+                                    type="text"
+                                    id="cityProvider"
+                                    name="cityProvider"
+                                    autoComplete="off"
+                                    placeholder="City Name"
+                                    className="w-full px-4 py-2 mt-1 text-base text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300"
+                                    required
+                                />
+                            </div>
+                            <div className="mt-4">
+                            
+                                <input
                                     type="file"
                                     accept="image/*"
                                     id="aadhaarPhotoProvider"
@@ -323,8 +351,8 @@ const SignUp = () => {
                             
                                 <input
                                     type="text"
-                                    id="AadhaarNumberProvider"
-                                    name="AadhaarNumberProvider"
+                                    id="aadhaarNumberProvider"
+                                    name="aadhaarNumberProvider"
                                     autoComplete="off"
                                     placeholder="Aadhaar Number"
                                     className="w-full px-4 py-2 mt-1 text-base text-gray-800 bg-white border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 focus:ring focus:ring-blue-300"

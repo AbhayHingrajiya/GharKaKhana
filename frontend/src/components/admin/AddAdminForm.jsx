@@ -94,8 +94,12 @@ const AddAdminForm = () => {
       try {
         console.log('Form submitted successfully with:', formData);
   
-        // Send the form data to the backend
-        const res = await axios.post('/api/addNewAdmin', formData);
+        // Send POST request with formData
+        const res = await axios.post('/api/addNewAdmin', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data', // Required for file uploads
+          },
+        });
   
         if (res.status === 201) {
           // Success feedback
@@ -125,7 +129,7 @@ const AddAdminForm = () => {
       }
     } else {
       // Validation error feedback
-      alert('Please correct the errors in the form.');
+      console.error('Please correct the errors in the form.');
     }
   };  
 

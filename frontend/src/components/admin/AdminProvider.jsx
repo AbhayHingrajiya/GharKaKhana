@@ -70,17 +70,33 @@ const AdminProvider = () => {
         });
     };
 
-    // Filter logic for providers
-    const filteredProviders = providersData ? providersData.map((provider) => {
-        // Filter dishes based on the criteria
-        const filteredDishes = filterDishes(provider.dishes);
+    const isAnyFilterApplied = cityNameFilter || pincodeFilter || providerEmailFilter || dishStatusFilter;
 
-        // Filter by provider email
-        const emailMatch = providerEmailFilter === '' || provider.providerInfo.email.toLowerCase().includes(providerEmailFilter.toLowerCase());
-
-        // Return the provider with only the filtered dishes and if email matches
-        return emailMatch ? { ...provider, dishes: filteredDishes } : null;
-    }).filter(provider => provider && provider.dishes.length > 0) : [];
+    const filteredProviders = providersData
+      ? providersData
+          .map((provider) => {
+            // Filter dishes based on the criteria
+            const filteredDishes = filterDishes(provider.dishes);
+    
+            // Filter by provider email
+            const emailMatch =
+              providerEmailFilter === '' ||
+              provider.providerInfo.email
+                .toLowerCase()
+                .includes(providerEmailFilter.toLowerCase());
+    
+            // Determine if the provider should be included
+            const shouldIncludeProvider = isAnyFilterApplied
+              ? emailMatch && filteredDishes.length > 0 // Only include if email matches and there are filtered dishes
+              : emailMatch; // Include regardless of dishes if no filters are applied
+    
+            // Return provider with filtered dishes or null based on inclusion condition
+            return shouldIncludeProvider ? { ...provider, dishes: filteredDishes } : null;
+          })
+          .filter((provider) => provider !== null) // Remove null values
+      : [];
+    
+  
     
     const totalDishes = filteredProviders.reduce((acc, provider) => acc + provider.dishes.length, 0);
 
@@ -163,6 +179,7 @@ const AdminProvider = () => {
                         <h2 className="text-2xl font-bold">{provider.providerInfo.name}</h2>
                         <p className="text-gray-600">Email: {provider.providerInfo.email}</p>
                         <p className="text-gray-600">Phone: {provider.providerInfo.phoneNumber}</p>
+                        {provider.providerInfo.cityName && (<p className="text-gray-600">City Name: {provider.providerInfo.cityName}</p>)}
                         <p className="text-gray-600">Negative Score: { provider.providerInfo.negativeScore ? provider.providerInfo.negativeScore : 0 }</p>
                     </motion.div>
 

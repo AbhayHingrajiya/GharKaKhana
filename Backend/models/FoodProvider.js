@@ -24,6 +24,11 @@ const foodProviderSchema = new Schema({
     trim: true, // Removes leading and trailing spaces
     match: [/^\d{10}$/, 'Please enter a valid 10-digit phone number'] // Validates a 10-digit phone number format
   },
+  cityName: {
+    type: String,
+    required: true,
+    trim: true
+  },
   aadhaarPhoto: {
     type: Buffer, // Store photo as binary data (bytes)
     required: [true, 'Aadhaar photo is required'],
@@ -38,6 +43,10 @@ const foodProviderSchema = new Schema({
     type: String,
     required: true,
     minlength: 6 // Ensures password has a minimum length of 6 characters
+  },
+  varify: {
+    type: Boolean,
+    default: false
   },
   negativeScore: {
     type: Number,

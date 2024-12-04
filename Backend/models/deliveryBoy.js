@@ -54,6 +54,10 @@ const deliveryBoySchema = new Schema({
     type: Boolean,
     default: false
   },
+  varify: {
+    type: Boolean,
+    default: false
+  },
   password: {
     type: String,
     required: true,

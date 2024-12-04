@@ -1,6 +1,7 @@
 import FoodConsumer from '../models/FoodConsumer.js'; 
 import DeliveryBoy from '../models/DeliveryBoy.js'; 
 import FoodProvider from '../models/FoodProvider.js';
+import AdminDetails from '../models/AdminDetails.js';
 import { generateTokenAndSetCookie } from '../lib/generateToken.js'
 import bcrypt from 'bcrypt';
 import multer from 'multer';
@@ -50,54 +51,57 @@ export const signUpFoodConsumer = async (req, res) => {
 }; 
 
 export const signUpFoodProvider = async (req, res) => {
-  const { 
-    name, 
-    email, 
-    phoneNumber, 
-    password, 
-    aadhaarPhotoProvider, 
-    aadhaarNumberProvider 
-  } = req.body;
+  // Parse the file and handle errors during upload
+  upload.single('aadhaarPhotoProvider')(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ message: 'Error uploading Aadhaar photo', error: err.message });
+    }
 
-  try {
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const { name, email, phoneNumber, cityName, password, aadhaarNumberProvider } = req.body;
 
-    // Create a new instance of the FoodProvider model
-    const foodProvider = new FoodProvider({
-      name,
-      email,
-      phoneNumber,
-      password: hashedPassword,
-      aadhaarPhoto: aadhaarPhotoProvider, // Ensure this is sent as Buffer or handle the conversion
-      aadhaarNumber: aadhaarNumberProvider
-    });
+    try {
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Save the foodProvider to the database
-    await foodProvider.save();
+      // Create a new instance of the FoodProvider model
+      const foodProvider = new FoodProvider({
+        name,
+        email,
+        phoneNumber,
+        cityName,
+        password: hashedPassword,
+        aadhaarPhoto: req.file.buffer, // Store the Aadhaar photo as bytes (Buffer)
+        aadhaarNumber: aadhaarNumberProvider,
+      });
 
-    // Generate token and set cookie
-    generateTokenAndSetCookie(foodProvider._id, res);
+      // Save the FoodProvider to the database
+      await foodProvider.save();
 
-    // Send a success response
-    res.status(201).json({
-      message: 'Food Provider created successfully',
-      foodProvider: {
-        id: foodProvider._id,
-        name: foodProvider.name,
-        email: foodProvider.email,
-        phoneNumber: foodProvider.phoneNumber,
-        aadhaarNumber: foodProvider.aadhaarNumber,
-      },
-    });
-  } catch (error) {
-    // Handle errors such as duplicate email or Aadhaar number
-    res.status(400).json({
-      message: 'Error creating Food Provider',
-      error: error.message,
-    });
-  }
+      // Generate token and set it in the response cookies
+      generateTokenAndSetCookie(foodProvider._id, res);
+
+      // Send a success response
+      res.status(201).json({
+        message: 'Food Provider created successfully',
+        foodProvider: {
+          id: foodProvider._id,
+          name: foodProvider.name,
+          email: foodProvider.email,
+          phoneNumber: foodProvider.phoneNumber,
+          cityName: foodProvider.cityName,
+          aadhaarNumber: foodProvider.aadhaarNumber,
+          // Do not send sensitive data such as the Aadhaar photo or hashed password
+        },
+      });
+    } catch (error) {
+      // Handle potential errors, like duplicate email or Aadhaar number
+      res.status(400).json({
+        message: 'Error creating Food Provider',
+        error: error.message,
+      });
+    }
+  });
 };
 
 export const signUpDeliveryBoy = async (req, res) => {
@@ -215,7 +219,7 @@ export const forgotPasswordSendOtp = async (req, res) => {
 
     console.log(role)
     // Ensure role is valid
-    const validRoles = ['consumer', 'provider', 'delivery boy'];
+    const validRoles = ['consumer', 'provider', 'delivery boy', 'admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ message: 'Invalid role provided' });
     }
@@ -228,6 +232,8 @@ export const forgotPasswordSendOtp = async (req, res) => {
       findUser = await FoodProvider.findOne({ email: userEmail });
     } else if (role === 'delivery Boy') {
       findUser = await DeliveryBoy.findOne({ email: userEmail });
+    } else if (role === 'admin') {
+      findUser = await AdminDetails.findOne({ email: userEmail });
     }
 
     // If user does not exist
@@ -308,6 +314,8 @@ export const resetPassword = async (req, res) => {
       userModel = FoodProvider;
     } else if (role === 'delivery boy') {
       userModel = DeliveryBoy;
+    } else if (role === 'admin') {
+      userModel = AdminDetails;
     } else {
       return res.status(400).json({ message: 'Invalid role specified.' });
     }
@@ -327,5 +335,47 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error('Error resetting password:', error);
     res.status(500).json({ message: 'Internal server error. Please try again later.' });
+  }
+};
+
+export const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // Check if admin exists
+    const admin = await AdminDetails.findOne({ email });
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Compare passwords
+    const isPasswordMatch = await bcrypt.compare(password, admin.password);
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Generate token and store it in session using the utility function
+    generateTokenAndSetCookie(admin._id, res);
+
+    // Respond with success
+    res.status(200).json({
+      message: 'Login successful',
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+      },
+    });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({
+      message: 'An error occurred during login',
+      error: error.message,
+    });
   }
 };

@@ -6,11 +6,11 @@ import http from 'http';
 import { Server } from 'socket.io';
 import connectMongoDB from './db/connectMongoDB.js'; 
 import { fetchUserIdMiddleware } from './middleware/fetchUserIdMiddleware.js';
-import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut, forgotPasswordSendOtp, resetPassword } from "./controllers/auth.js";
+import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut, forgotPasswordSendOtp, resetPassword,adminLogin } from "./controllers/auth.js";
 import { getUserId } from './lib/generateToken.js';
 import { getMe } from './controllers/common.js';
 import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider } from './controllers/provider.js';
-import { getAdminProviderInfo, getAdminConsumerInfo, getAdminDeliveryBoyInfo, getAllPendingVerificationRequests, addNewAdmin } from './controllers/admin.js'
+import { getAdminProviderInfo, getAdminConsumerInfo, getAdminDeliveryBoyInfo, getAllPendingVerificationRequests, addNewAdmin, checkAdminLoginStatus, getAllAdminInfo } from './controllers/admin.js'
 import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer, denyOrderByDeliveryBoy } from './controllers/consumer.js'
 import { activeDeliveryBoy, acceptedOrderByDeliveryBoy } from './controllers/deliveryBoy.js'
 
@@ -40,6 +40,7 @@ app.post('/api/login', login);
 app.post('/api/signOut', signOut);
 app.post('/api/forgotPasswordSendOtp', forgotPasswordSendOtp);
 app.post('/api/resetPassword', fetchUserIdMiddleware, resetPassword);
+app.post('/api/adminLogin', adminLogin);
 
 //generateToken.js
 app.post('/api/getUserId', getUserId);
@@ -72,6 +73,8 @@ app.post('/api/getAdminConsumerInfo',getAdminConsumerInfo);
 app.post('/api/getAdminDeliveryBoyInfo',getAdminDeliveryBoyInfo);
 app.post('/api/getAllPendingVerificationRequests', fetchUserIdMiddleware, getAllPendingVerificationRequests);
 app.post('/api/addNewAdmin', fetchUserIdMiddleware, addNewAdmin);
+app.post('/api/checkAdminLoginStatus', fetchUserIdMiddleware, checkAdminLoginStatus);
+app.post('/api/getAllAdminInfo', fetchUserIdMiddleware, getAllAdminInfo);
 
 // Socket.IO Connection Handler
 io.on('connection', (socket) => {

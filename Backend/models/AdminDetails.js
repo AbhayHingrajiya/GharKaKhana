@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const AdminDetailsSchema = new mongoose.Schema({
   name: {
@@ -32,6 +32,14 @@ const AdminDetailsSchema = new mongoose.Schema({
     unique: true,
     match: [/^\d{12}$/, 'Enter a valid 12-digit Aadhaar number'],
   },
+  verifyProviders: {
+    type: Array,
+    default: []
+  },
+  verifyDeliveryBoy: {
+    type: Array,
+    default: []
+  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -43,7 +51,7 @@ const AdminDetailsSchema = new mongoose.Schema({
   },
   responsibleAdmin: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'AdminDetails', // Reference to the same AdminDetails model
+    // ref: 'AdminDetails', // Reference to the same AdminDetails model
     required: true,
   },
   createdAt: {
@@ -54,4 +62,4 @@ const AdminDetailsSchema = new mongoose.Schema({
 
 const AdminDetails = mongoose.model('AdminDetails', AdminDetailsSchema);
 
-module.exports = AdminDetails;
+export default AdminDetails;
