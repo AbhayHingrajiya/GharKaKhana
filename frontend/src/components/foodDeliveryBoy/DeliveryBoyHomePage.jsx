@@ -58,9 +58,9 @@ const DeliveryBoyHomePage = () => {
           }
         });
         
-        // const res = await axios.post('/api/verifyDeliveryBoy');
-        // setIsVerify(res.data.varify);
-        // setAdminComment(res.data.adminComment);
+        const res = await axios.post('/api/verifyDeliveryBoy');
+        setIsVerify(res.data.varify);
+        setAdminComment(res.data.adminComment);
 
       } catch (error) {
         console.error('Error initializing socket or fetching user ID:', error);

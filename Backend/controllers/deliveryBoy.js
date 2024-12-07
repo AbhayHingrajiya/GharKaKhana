@@ -202,15 +202,15 @@ export const completeDelivery = async (req, res) => {
     }
 
     // Update the status of the order
-    // const updatedOrder = await OrderInfo.findOneAndUpdate(
-    //   { 
-    //     _id: orderId, 
-    //     'deliveryBoyId': deliveryBoyId 
-    //   },
-    //   { $set: { 'status': 'delivered' } }, // Update the specific dish's status
-    //   { new: true }
-    // );
-    const updatedOrder = true;
+    const updatedOrder = await OrderInfo.findOneAndUpdate(
+      { 
+        _id: orderId, 
+        'deliveryBoyId': deliveryBoyId 
+      },
+      { $set: { 'status': 'delivered' } }, // Update the specific dish's status
+      { new: true }
+    );
+    // const updatedOrder = true;
 
     storeDishDetails(order)
 
