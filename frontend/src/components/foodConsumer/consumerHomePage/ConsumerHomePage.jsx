@@ -230,28 +230,6 @@ const ConsumerHomePage = () => {
         </div>
       </div>
 
-      {/* <div className="space-y-8 w-full p-4">
-        <motion.div
-          className="flex justify-around w-full p-4 bg-gray-50 rounded-md shadow"
-          initial={{ y: -50 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.div className="cursor-pointer hover:bg-green-100 p-2 rounded transition duration-300" whileHover={{ scale: 1.05 }}>
-            New Arrivals
-          </motion.div>
-          <motion.div className="cursor-pointer hover:bg-green-100 p-2 rounded transition duration-300" whileHover={{ scale: 1.05 }}>
-            Popular Dishes
-          </motion.div>
-          <select className="p-2 border rounded w-1/4">
-            <option>Price Range</option>
-          </select>
-          <select className="p-2 border rounded w-1/4">
-            <option>Time Range</option>
-          </select>
-        </motion.div>
-      </div> */}
-
       <div className="flex flex-wrap gap-4">
         {filteredDishes && (
           filteredDishes.map(({ dishInfo, itemInfo, availableQuantity }, index) => (

@@ -25,42 +25,7 @@ const AdminDetails = () => {
 
         fetchAdminData();  // Call the async function
     }, []);
-
-    // const adminData = [
-    //     {
-    //         _id: 'admin1',
-    //         name: 'John Doe',
-    //         email: 'john.doe@example.com',
-    //         phoneNumber: '1234567890',
-    //         cityName: 'New York',
-    //         responsibleAdmin: 'Provider Management',
-    //         verifiedProviderEmails: ['provider1@example.com', 'provider2@example.com'],
-    //         verifiedDeliveryBoyEmails: ['delivery1@example.com', 'delivery2@example.com'],
-    //     },
-    //     {
-    //         _id: 'admin2',
-    //         name: 'Jane Smith',
-    //         email: 'jane.smith@example.com',
-    //         phoneNumber: '9876543210',
-    //         cityName: 'Los Angeles',
-    //         responsibleAdmin: 'Delivery Management',
-    //         verifiedProviderEmails: ['provider3@example.com'],
-    //         verifiedDeliveryBoyEmails: ['delivery3@example.com', 'delivery4@example.com'],
-    //     },
-    //     {
-    //         _id: 'admin3',
-    //         name: 'Emily Johnson',
-    //         email: 'emily.johnson@example.com',
-    //         phoneNumber: '5555555555',
-    //         cityName: 'Chicago',
-    //         responsibleAdmin: 'Order Oversight',
-    //         verifiedProviderEmails: ['provider4@example.com', 'provider5@example.com'],
-    //         verifiedDeliveryBoyEmails: ['delivery5@example.com'],
-    //     },
-    // ];
-
-    // Filtered Admins based on input filters
-    
+   
     const filteredAdmins = adminData.filter((admin) => {
         const cityNameMatch = cityNameFilter === '' || admin.cityName.toLowerCase().includes(cityNameFilter.toLowerCase());
         const emailMatch = emailFilter === '' || admin.email.toLowerCase().includes(emailFilter.toLowerCase());

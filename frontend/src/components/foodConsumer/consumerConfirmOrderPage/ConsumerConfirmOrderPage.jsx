@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import {load} from '@cashfreepayments/cashfree-js';
 
 const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, deliveryDates, orderInfo}) => {
 
@@ -8,6 +9,8 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, deli
   const [selectedAddress, setSelectedAddress] = useState(addresses[0]);
   const [addingAddress, setAddingAddress] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [transactionId, setTransactionId] = useState(null)
+  const cashfreeRef  = useRef(null);
 
   const totalAmount = orderInfo.reduce((total, item) => total + item.dish.dishPrice * item.quantity, 0);
   let gst = (totalAmount * 0.18).toFixed(2);
@@ -21,26 +24,40 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, deli
     setPaymentMethod(method);
   };
 
-  useEffect( () => {
+  useEffect(() => {
+    // Scroll to top
     window.scrollTo({
-        top: 0
+      top: 0,
     });
 
-    ( async () => {
-      try{
-        const res = await axios.post('/api/getConsumerAddress');
-        if(res.status == 200){
-          console.log(res.data);
-          setAddresses(res.data)
-        }else{
-          console.error("can't get res in getConsumerAddress");
-        }
-      }catch(err){
-        console.error('get error at getConsumerAdddress at frontend side: '+err);
+    // Initialize the Cashfree SDK
+    const initializeSDK = async () => {
+      try {
+        cashfreeRef.current = await load({
+          mode: 'sandbox', // Correctly use 'sandbox' or 'production'
+        });
+      } catch (error) {
+        console.error('Error initializing Cashfree SDK:', error);
       }
+    };
 
+    // Initialize Cashfree SDK
+    initializeSDK();
+
+    // Fetch consumer address
+    (async () => {
+      try {
+        const res = await axios.post('/api/getConsumerAddress');
+        if (res.status === 200) {
+          setAddresses(res.data);
+        } else {
+          console.error("Can't get response in getConsumerAddress");
+        }
+      } catch (err) {
+        console.error('Error fetching addresses: ', err);
+      }
     })();
-  }, [])
+  }, []);
 
   const addNewAddress = async () => {
     try{
@@ -63,31 +80,127 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, deli
     }
   };
 
-  const confirmPlaceOrder = async () => {
-    gst = parseFloat(gst)
-    const deliveryDate = Object.keys(deliveryDates).length === 0 
-      ? null // Handle the case when the set is empty
-      : new Date(
-          Math.max(...Object.values(deliveryDates).map(dateString => new Date(dateString)))
-    );
-    try{
-      const res = await axios.post('/api/addNewOrder', { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge, deliveryDate });
-      if(res.status == 201){
-        alert('Order pacle successsfully');
-      }else{
-        console.error('Error in addNewOrder method in frontend side')
-      }
-    }catch(error) {
-      if (error.response && error.response.status === 400) {
-        alert("Unfortunately, we do not have enough quantity available to fulfill your order.");
-      } else {
-          console.error('Error in addNewOrder request:', error);
-          alert('An error occurred while placing the order. Please try again later.');
-      }
-    }finally{
-      window.location.reload();
+  const getSessionId = async (totalAmount) => {
+    try {
+        const response = await axios.post('/api/getSessionId', { totalAmount });
+
+        // Set transaction ID from the response
+        setTransactionId(response.data.order_id);
+
+        // Return the session ID
+        return response.data.session_id;
+    } catch (error) {
+        console.error('Error fetching session ID:', error.response ? error.response.data : error.message);
+        throw new Error('Failed to fetch session ID.');
     }
-  }
+  };
+
+
+  const verifyPayment = async ( TI ) => {
+    try {
+        // Await API response
+        const res = await axios.post('/api/verifyPayment', { transactionId: TI });
+
+        // Check response validity
+        if (res.data && res.data.success) {
+            alert('Payment Successful');
+        } else {
+            console.warn('Payment verification failed:', res.data);
+            alert('Payment verification failed. Please contact support.');
+        }
+    } catch (error) {
+        // Log and handle errors
+        console.error('Error during payment verification:', error);
+        alert('An error occurred while verifying your payment. Please try again later.');
+    }
+  };
+
+
+  const confirmPlaceOrder = async (e) => {
+    e.preventDefault(); // Prevent default form submission behavior
+
+    // Parse GST safely
+    const parsedGst = parseFloat(gst);
+
+    // Calculate delivery date
+    const deliveryDate =
+        Object.keys(deliveryDates).length === 0
+            ? null // Handle empty set
+            : new Date(
+                  Math.max(...Object.values(deliveryDates).map(dateString => new Date(dateString)))
+              );
+
+    let flagForCheckPaymentStatus = true;
+
+    // Handle online payment
+    if (paymentMethod === 'online') {
+        try {
+            const sessionId = await getSessionId(totalAmount+parsedGst+deliveryCharge); // Get session ID for payment
+            const checkoutOptions = {
+                paymentSessionId: sessionId,
+                redirectTarget: '_modal',
+            };
+            await cashfreeRef.current.checkout(checkoutOptions); // Initialize payment
+
+            // Call verification API
+            if(transactionId) await verifyPayment(transactionId);
+            flagForCheckPaymentStatus = true;
+        } catch (error) {
+            flagForCheckPaymentStatus = false;
+            console.error('Error during online payment process:', error);
+            alert('Failed to process online payment. Please try again.');
+            return; // Exit to avoid proceeding without successful payment
+        }
+    }
+
+    if (!flagForCheckPaymentStatus) return;
+
+    // Add the new order
+    try {
+        const response = await axios.post('/api/addNewOrder', {
+            orderInfo,
+            paymentMethod,
+            selectedAddress,
+            totalAmount,
+            gst: parsedGst,
+            deliveryCharge,
+            deliveryDate,
+            transactionId
+        });
+
+        if (response.status === 201) {
+            alert('Order placed successfully!');
+        } else {
+            console.error('Unexpected error in addNewOrder response');
+            alert('Something went wrong while placing your order.');
+        }
+    } catch (error) {
+        if (error.response && error.response.status === 400) {
+            alert('Unfortunately, we do not have enough quantity available to fulfill your order.');
+        } else {
+            console.error('Error in addNewOrder request:', error);
+            alert('An error occurred while placing the order. Please try again later.');
+        }
+
+        // Handle payment refunds for online payments
+        if (paymentMethod === 'online' && flagForCheckPaymentStatus) {
+            try {
+                const refundResponse = await axios.post('/api/refundPayment');
+                if (refundResponse.status === 200) {
+                    alert("Don't worry! You will receive your payment shortly.");
+                } else {
+                    console.warn('Refund request failed but no critical error reported.');
+                }
+            } catch (refundError) {
+                console.error('Error during refund process:', refundError);
+                alert('We encountered an issue while processing your refund. Please contact support.');
+            }
+        }
+    }
+    window.location.reload();
+  };
+
+
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -129,7 +242,7 @@ const ConsumerConfirmOrderPage = ({moveToConsumerConfirmOrderPageChangeFun, deli
                 type="radio"
                 name="address"
                 value={address}
-                checked={selectedAddress === address}
+                checked={selectedAddress == address}
                 onChange={() => handleAddressChange(address)}
                 className="cursor-pointer"
               />

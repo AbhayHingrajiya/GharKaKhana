@@ -266,13 +266,13 @@ const ProviderDishCard = ({ dish, item, Quantity, theme, addCardToCancelDiv, use
       <motion.div className="relative lg:w-1/2">
         <motion.img
           className="h-48 w-full object-cover"
-          src='src/assets/fullLogo.jpeg'
+          src={(dish.dishImage && dish.dishImage != 'default') ? `src/assets/dishesPhoto/${dish.dishImage}` : `src/assets/dishesPhoto/default.png`}
           alt={dish.dishName}
           initial={{ scale: 1 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.3 }}
         />
-        { userType != 'consumerOrder' && (
+        { userType != 'consumerOrder' && userType != 'ProviderCompleteDish' && userType != 'ProviderCancleDish' && (
           <>
             <div className={`absolute top-2 left-2 px-3 py-1 rounded-lg text-sm ${themeFlag ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
               Delivery Till: {timeLeftDelivery ? timeLeftDelivery : 'None'}

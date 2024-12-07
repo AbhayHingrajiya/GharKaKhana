@@ -222,6 +222,7 @@ const ProviderOrderList = () => {
                 item={itemInfo}
                 Quantity={completeQuantity}
                 theme={true}
+                userType='ProviderCompleteDish'
               />
             ))}
           </div>
@@ -236,6 +237,7 @@ const ProviderOrderList = () => {
                 item={itemInfo}
                 Quantity={cancelQuantity}
                 theme={false}
+                userType='ProviderCancleDish'
               />
             ))}
           </div>

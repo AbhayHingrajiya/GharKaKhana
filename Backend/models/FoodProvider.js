@@ -48,6 +48,14 @@ const foodProviderSchema = new Schema({
     type: Boolean,
     default: false
   },
+  adminComment: {
+    type: String,
+    default: 'No admin comments'
+  },
+  profilePic: {
+    type: String,
+    default: 'default'
+  },
   negativeScore: {
     type: Number,
     default: 0

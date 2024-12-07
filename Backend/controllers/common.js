@@ -29,6 +29,7 @@ export const getMe = async (req, res) => {
                         name: user.name,
                         email: user.email,
                         phoneNumber: user.phoneNumber,
+                        profilePic: user.profilePic,
                         type: userType.type
                     });
                 }
@@ -40,3 +41,39 @@ export const getMe = async (req, res) => {
         return res.status(401).json({ message: 'Error in getMe: Token is not valid' });
     }
 };
+
+export const profileEdit = async (req, res) => {
+    try {
+      const userId = req.userId;
+      const updatedProfileData = req.body; // The updated profile data sent from the frontend
+  
+      // Determine the user model based on the type
+      let userModel;
+      if (updatedProfileData.type === 'foodConsumer') {
+        userModel = FoodConsumer;
+      } else if (updatedProfileData.type === 'deliveryBoy') {
+        userModel = DeliveryBoy;
+      } else if (updatedProfileData.type === 'foodProvider') {
+        userModel = FoodProvider;
+      } else {
+        return res.status(400).json({ message: 'Invalid user type provided' });
+      }
+  
+      // Update the user's profile in the database
+      const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        updatedProfileData,
+        { new: true, runValidators: true } // Return the updated document and validate the input
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+  

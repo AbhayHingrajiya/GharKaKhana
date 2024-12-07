@@ -2,7 +2,9 @@ import DishInfo from '../models/DishInfo.js';
 import ItemDetails from '../models/itemDetails.js';
 import DishStatus from '../models/DishStatus.js';
 import OrderInfo from '../models/OrderInfo.js';
+import FoodProvider from '../models/FoodProvider.js';  
 import mongoose from 'mongoose';
+import PaymentDetails from '../models/PaymentDetails.js';
 
 export const addDish = async (req, res) => {
     const {
@@ -16,7 +18,8 @@ export const addDish = async (req, res) => {
       deliveryTill,
       items,
       repeat,
-      dishId
+      dishId,
+      dishImage
     } = req.body;
 
     const providerId = req.userId;
@@ -37,7 +40,8 @@ export const addDish = async (req, res) => {
             dishQuantity,
             orderTill,
             deliveryTill,
-            repeat
+            repeat,
+            ...(dishImage && { dishImage })
           }
         },
         { new: true } // Return the updated document
@@ -88,7 +92,8 @@ export const addDish = async (req, res) => {
     dishQuantity,
     orderTill,
     deliveryTill,
-    repeat
+    repeat,
+    ...(dishImage && { dishImage })
     });
 
     // Save the new dish info to the database
@@ -365,5 +370,44 @@ export const comfirmOrderDeliveryByProvider = async (req, res) => {
   } catch (error) {
     console.error("Error updating order and dish:", error);
     return res.status(500).json({ message: "Error updating order and dish" });
+  }
+};
+
+export const checkProviderVerification = async (req, res) => {
+  const providerId = req.userId; // Getting provider ID from the request
+
+  try {
+    // Fetch provider data from the database
+    const provider = await FoodProvider.findById(providerId);
+
+    // If provider is not found, return a 404 error
+    if (!provider) {
+      return res.status(404).json({ error: 'Provider not found' });
+    }
+
+    console.log(provider)
+    // Send the verification status and admin comment (if any)
+    return res.status(200).json({
+      isVerified: provider.varify,
+      adminComment: provider.adminComment || 'No admin comments',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Server error, please try again later' });
+  }
+};
+
+export const getProviderPaymentDetails = async (req, res) => {
+  try {
+    const providerId = req.userId; // Assuming `req.userId` contains the logged-in provider's ID
+
+    // Fetch all payment details for the provider
+    const paymentDetails = await PaymentDetails.find({ providerId });
+
+    // Send the fetched data as the response
+    res.status(200).json(paymentDetails);
+  } catch (error) {
+    console.error('Error fetching payment details:', error);
+    res.status(500).json({ message: 'Failed to fetch payment details', error: error.message });
   }
 };

@@ -58,6 +58,22 @@ const deliveryBoySchema = new Schema({
     type: Boolean,
     default: false
   },
+  adminComment: {
+    type: String,
+    default: 'No admin comments'
+  },
+  profilePic: {
+    type: String,
+    default: 'default'
+  },
+  negativeScore: {
+    type: Number,
+    default: 0
+  },
+  blockStatus: {
+    type: Boolean,
+    default: false
+  },
   password: {
     type: String,
     required: true,

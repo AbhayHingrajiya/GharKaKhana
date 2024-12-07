@@ -70,7 +70,14 @@ const ProviderNavbar = ( {activeLink} ) => {
               <a className={`${(activeLink === 'home') 
               ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0' 
               : "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0" }`}
-              onClick={() => {user.userType == 'foodProvider' ? navigate('/providerHomePage') : navigate('/consumerHomePage') }}>
+              onClick={() => 
+                user.userType === 'foodProvider' 
+                  ? navigate('/providerHomePage') 
+                  : user.userType === 'foodConsumer' 
+                  ? navigate('/consumerHomePage') 
+                  : navigate('/deliveryBoyHomePage')
+              }
+              >
                 Home
               </a>
             </li>
@@ -78,12 +85,25 @@ const ProviderNavbar = ( {activeLink} ) => {
               <a className={`${(activeLink === 'order') 
               ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0' 
               : "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0" }`}
-              onClick={() => {user.userType == 'foodProvider' ? navigate('/providerOrderList') : navigate('/consumerOrderList')}}>
+              onClick={() => 
+                user.userType === 'foodProvider' 
+                  ? navigate('/providerOrderList') 
+                  : user.userType === 'foodConsumer' 
+                  ? navigate('/consumerOrderList') 
+                  : navigate('/deliveryBoyOrderPage')
+              }
+              >
                 Orders
               </a>
             </li>
             <li>
-              <a className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">
+              <a className={`${(activeLink === 'profile') 
+              ? 'block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0' 
+              : "block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0" }`}
+              onClick={() => 
+                navigate('/profilePage')
+              }
+              >
                 Profile
               </a>
             </li>

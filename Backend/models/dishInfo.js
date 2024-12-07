@@ -44,6 +44,10 @@ const dishInfoSchema = new Schema({
     type: [String],
     required: true
   },
+  dishImage: {
+    type: String,
+    default: 'default'
+  },
   date: {
     type: Date,
     default: () => new Date(Date.now() + (5 * 60 * 60 * 1000) + (30 * 60 * 1000))

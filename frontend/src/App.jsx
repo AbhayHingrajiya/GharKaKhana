@@ -11,10 +11,10 @@ import ProviderOrderList from "./components/foodProvider/providerOrderList/Provi
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ClimbingBoxLoader } from "react-spinners";
 import ConsumerHomePage from './components/foodConsumer/consumerHomePage/ConsumerHomePage';
-import ConsumerConfirmOrderPage from './components/foodConsumer/consumerConfirmOrderPage/ConsumerConfirmOrderPage';
 import ConsumerOrderList from './components/foodConsumer/consumerOrderList/ConsumerOrderList'
-// import ProfilePage from './components/profilePage/ProfilePage';
+import ProfilePage from './components/profilePage/ProfilePage';
 import DeliveryBoyHomePage from './components/foodDeliveryBoy/DeliveryBoyHomePage'
+import DeliveryBoyOrderPage from './components/foodDeliveryBoy/DeliveryBoyOrderPage'
 import ForgotPassword from './components/forgotPassword/ForgotPassword'
 
 function App() {
@@ -66,15 +66,15 @@ function App() {
                                   <Login />
                                 ) : userType == 'foodConsumer' ? (
                                   <ConsumerHomePage />
-                                // ) : userType == 'deliveryBoy' ? (
-                                //   <DeliveryHomePage />
+                                ) : userType == 'deliveryBoy' ? (
+                                  <DeliveryBoyHomePage />
                                 ) : userType == 'foodProvider' ? (
                                   <ProviderHomePage />
                                 ) : (
                                   <Login />
                                 )
                               } />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={userType != 'foodProvider' && userType != 'deliveryBoy' && userType != 'foodConsumer' ? <AdminDashboard /> : <Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signUp" element={<SignUp />} />
         <Route path="/forgotPassword" element={<ForgotPassword />} />
@@ -82,8 +82,9 @@ function App() {
         <Route path="/providerOrderList" element={isLogedIn ? <ProviderOrderList /> : <Login />} />
         <Route path="/consumerHomePage" element={isLogedIn ? <ConsumerHomePage /> : <Login />} />
         <Route path="/consumerOrderList" element={isLogedIn ? <ConsumerOrderList /> : <Login />} />
-        {/* <Route path="/profilePage" element={isLogedIn ? <ProfilePage /> : <Login />} /> */}
+        <Route path="/profilePage" element={isLogedIn ? <ProfilePage /> : <Login />} />
         <Route path="/deliveryBoyHomePage" element={isLogedIn ? <DeliveryBoyHomePage /> : <Login />} />
+        <Route path="/deliveryBoyOrderPage" element={isLogedIn ? <DeliveryBoyOrderPage /> : <Login />} />
       </Routes>
     </Router>
   );

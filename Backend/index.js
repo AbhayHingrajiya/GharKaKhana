@@ -8,11 +8,12 @@ import connectMongoDB from './db/connectMongoDB.js';
 import { fetchUserIdMiddleware } from './middleware/fetchUserIdMiddleware.js';
 import { signUpFoodConsumer, signUpFoodProvider, signUpDeliveryBoy, login, signOut, forgotPasswordSendOtp, resetPassword,adminLogin } from "./controllers/auth.js";
 import { getUserId } from './lib/generateToken.js';
-import { getMe } from './controllers/common.js';
-import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider } from './controllers/provider.js';
-import { getAdminProviderInfo, getAdminConsumerInfo, getAdminDeliveryBoyInfo, getAllPendingVerificationRequests, addNewAdmin, checkAdminLoginStatus, getAllAdminInfo } from './controllers/admin.js'
-import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer, denyOrderByDeliveryBoy } from './controllers/consumer.js'
-import { activeDeliveryBoy, acceptedOrderByDeliveryBoy } from './controllers/deliveryBoy.js'
+import { getSessionId, verifyPayment } from './lib/cashFree.js';
+import { getMe, profileEdit } from './controllers/common.js';
+import { addDish, getAllDishInfoProvider,  cancelOrderProvider, getOTPforDelivery, comfirmOrderDeliveryByProvider, checkProviderVerification, getProviderPaymentDetails } from './controllers/provider.js';
+import { getAdminProviderInfo, getAdminConsumerInfo, getAdminDeliveryBoyInfo, getAllPendingVerificationRequests, addNewAdmin, checkAdminLoginStatus, getAllAdminInfo, addComment, verifyUser, blockUser } from './controllers/admin.js'
+import { consumerGetDishInfo, getConsumerAddress, addNewAddress, addNewOrder, getPendingOrdersConsumer, cancelOrderConsumer, denyOrderByDeliveryBoy, getCompleteOrdersConsumer } from './controllers/consumer.js'
+import { activeDeliveryBoy, acceptedOrderByDeliveryBoy, completeDelivery, deliveryBoyGetAllCompleteOrders, verifyDeliveryBoy, deactiveDeliveryBoy } from './controllers/deliveryBoy.js'
 
 dotenv.config(); // Load environment variables
 
@@ -44,8 +45,15 @@ app.post('/api/adminLogin', adminLogin);
 
 //generateToken.js
 app.post('/api/getUserId', getUserId);
-app.post('/api/getMe', getMe);
 app.post('/api/getProviderId', getUserId);
+
+//common.js
+app.post('/api/getMe', getMe);
+app.post('/api/profileEdit', fetchUserIdMiddleware, profileEdit);
+
+//cashFree.js
+app.post('/api/getSessionId', fetchUserIdMiddleware, getSessionId)
+app.post('/api/verifyPayment', verifyPayment)
 
 //provider.js
 app.post('/api/addDish', fetchUserIdMiddleware, addDish);
@@ -53,6 +61,8 @@ app.post('/api/cancelOrderProvider', cancelOrderProvider);
 app.post('/api/getAllDishInfoProvider', fetchUserIdMiddleware, getAllDishInfoProvider);
 app.post('/api/getOTPforDelivery', fetchUserIdMiddleware, getOTPforDelivery);
 app.post('/api/comfirmOrderDeliveryByProvider', fetchUserIdMiddleware, comfirmOrderDeliveryByProvider);
+app.post('/api/checkProviderVerification', fetchUserIdMiddleware, checkProviderVerification);
+app.post('/api/getProviderPaymentDetails', fetchUserIdMiddleware, getProviderPaymentDetails);
 
 //consumer.js
 app.post('/api/consumerGetDishInfo', consumerGetDishInfo);
@@ -62,10 +72,15 @@ app.post('/api/addNewOrder', fetchUserIdMiddleware, addNewOrder);
 app.post('/api/getPendingOrdersConsumer', fetchUserIdMiddleware, getPendingOrdersConsumer);
 app.post('/api/cancelOrderConsumer', fetchUserIdMiddleware, cancelOrderConsumer);
 app.post('/api/denyOrderByDeliveryBoy', fetchUserIdMiddleware, denyOrderByDeliveryBoy);
+app.post('/api/getCompleteOrdersConsumer', fetchUserIdMiddleware, getCompleteOrdersConsumer);
 
 //deliveryBoy.js
 app.post('/api/activeDeliveryBoy', fetchUserIdMiddleware, activeDeliveryBoy);
 app.post('/api/acceptedOrderByDeliveryBoy', fetchUserIdMiddleware, acceptedOrderByDeliveryBoy);
+app.post('/api/completeDelivery', fetchUserIdMiddleware, completeDelivery);
+app.post('/api/deliveryBoyGetAllCompleteOrders', fetchUserIdMiddleware, deliveryBoyGetAllCompleteOrders);
+app.post('/api/verifyDeliveryBoy', fetchUserIdMiddleware, verifyDeliveryBoy);
+app.post('/api/deactiveDeliveryBoy', fetchUserIdMiddleware, deactiveDeliveryBoy);
 
 //admin.js 
 app.post('/api/getAdminProviderInfo',getAdminProviderInfo);
@@ -75,6 +90,9 @@ app.post('/api/getAllPendingVerificationRequests', fetchUserIdMiddleware, getAll
 app.post('/api/addNewAdmin', fetchUserIdMiddleware, addNewAdmin);
 app.post('/api/checkAdminLoginStatus', fetchUserIdMiddleware, checkAdminLoginStatus);
 app.post('/api/getAllAdminInfo', fetchUserIdMiddleware, getAllAdminInfo);
+app.post('/api/addComment',addComment);
+app.post('/api/verifyUser',verifyUser);
+app.post('/api/blockUser',blockUser);
 
 // Socket.IO Connection Handler
 io.on('connection', (socket) => {

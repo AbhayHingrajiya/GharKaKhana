@@ -175,10 +175,10 @@ export const getAllPendingVerificationRequests = async (req, res) => {
 
     // Fetch pending providers and delivery boys matching the cityName
     const [providers, deliveryBoys] = await Promise.all([
-      FoodProvider.find({ cityName, varify: false }).select(
+      FoodProvider.find({ cityName, varify: false, blockStatus: false }).select(
         '_id name email phoneNumber aadhaarPhoto aadhaarNumber'
       ),
-      DeliveryBoy.find({ cityName, varify: false }).select(
+      DeliveryBoy.find({ cityName, varify: false, blockStatus: false }).select(
         '_id name email phoneNumber licenseNumber licensePhoto vehicleName vehicleNumber cityName'
       ),
     ]);
@@ -365,5 +365,116 @@ export const getAllAdminInfo = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const addComment = async (req, res) => {
+  const { id, comment } = req.body;
+
+  try {
+    // Check if the FoodProvider with the given id exists
+    let provider = await FoodProvider.findById(id);
+    
+    // If the provider exists, update the adminComment field
+    if (provider) {
+      provider.adminComment = comment;
+      await provider.save();
+      return res.status(200).json({ success: true, message: 'Comment added successfully to provider' });
+    }
+
+    // If the FoodProvider doesn't exist, check if the DeliveryBoy with the given id exists
+    let deliveryBoy = await DeliveryBoy.findById(id);
+
+    // If the deliveryBoy exists, update the adminComment field
+    if (deliveryBoy) {
+      deliveryBoy.adminComment = comment;
+      await deliveryBoy.save();
+      return res.status(200).json({ success: true, message: 'Comment added successfully to delivery boy' });
+    }
+
+    // If neither exists, return an error
+    return res.status(404).json({ success: false, error: 'User not found' });
+    
+  } catch (error) {
+    console.error('Error while adding comment:', error);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+export const verifyUser = async (req, res) => {
+  const { id, comment } = req.body;
+
+  try {
+    // Check if the FoodProvider with the given id exists
+    let provider = await FoodProvider.findById(id);
+
+    // If the provider exists, update the verify field
+    if (provider) {
+      provider.varify = true;  // Set the provider as verified
+      if (comment) {
+        provider.adminComment = comment;  // Add the admin comment if provided
+      }
+      await provider.save();
+      return res.status(200).json({ success: true, message: 'Provider verified successfully' });
+    }
+
+    // If the FoodProvider doesn't exist, check if the DeliveryBoy with the given id exists
+    let deliveryBoy = await DeliveryBoy.findById(id);
+
+    // If the deliveryBoy exists, update the verify field
+    if (deliveryBoy) {
+      deliveryBoy.varify = true;  // Set the delivery boy as verified
+      if (comment) {
+        deliveryBoy.adminComment = comment;  // Add the admin comment if provided
+      }
+      await deliveryBoy.save();
+      return res.status(200).json({ success: true, message: 'Delivery boy verified successfully' });
+    }
+
+    // If neither exists, return an error
+    return res.status(404).json({ success: false, error: 'User not found' });
+
+  } catch (error) {
+    console.error('Error while verifying user:', error);
+    return res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+export const blockUser = async (req, res) => {
+  const { id, comment } = req.body;
+
+  try {
+    // Check if the FoodProvider with the given id exists
+    let provider = await FoodProvider.findById(id);
+
+    // If the provider exists, block the provider
+    if (provider) {
+      provider.blockStatus = true;  // Set the block status to true
+      if (comment) {
+        provider.adminComment = comment;  // Add the admin comment if provided
+      }
+      await provider.save();
+      return res.status(200).json({ success: true, message: 'Provider blocked successfully' });
+    }
+
+    // If the FoodProvider doesn't exist, check if the DeliveryBoy with the given id exists
+    let deliveryBoy = await DeliveryBoy.findById(id);
+
+    // If the deliveryBoy exists, block the delivery boy
+    if (deliveryBoy) {
+      deliveryBoy.blockStatus = true;  // Set the block status to true
+      if (comment) {
+        deliveryBoy.adminComment = comment;  // Add the admin comment if provided
+      }
+      await deliveryBoy.save();
+      return res.status(200).json({ success: true, message: 'Delivery boy blocked successfully' });
+    }
+
+    // If neither exists, return an error
+    return res.status(404).json({ success: false, error: 'User not found' });
+
+  } catch (error) {
+    console.error('Error while blocking user:', error);
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 };

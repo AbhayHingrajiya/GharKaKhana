@@ -45,6 +45,9 @@ export const consumerGetDishInfo = async (req, res) => {
           
             return bMatches - aMatches;
           });
+          sortedDishes.forEach(dish => {
+            dish.dishInfo.dishPrice += 5;
+          });
           return res.status(200).json(sortedDishes);;          
     }catch(err){
         console.error('Error in consumerGetDishInfo at backend: '+err);
@@ -153,7 +156,7 @@ export const processDishCancellation = async (orderId, dishDetails) => {
 export const addNewOrder = async (req, res) => {
   try {
     const consumerId = req.userId;
-    const { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge, deliveryDate } = req.body;
+    const { orderInfo, paymentMethod, selectedAddress, totalAmount, gst, deliveryCharge, deliveryDate, transactionId } = req.body;
     
     const dishInfoMap = new Map();
     const otp = new Map();
@@ -202,40 +205,44 @@ export const addNewOrder = async (req, res) => {
       deliveryPrice: deliveryCharge,
       totalPrice: totalAmount + gst + deliveryCharge,
       otp: Object.fromEntries(otp),
+      ...(transactionId && { transactionId }),
       dishDelivery: Object.fromEntries(dishDelivery),
       ...(deliveryDate != null && { deliveryDate })
     });
+    let canceledDishes = []
+    makeRequestForDelivery(newOrder._id, newOrder.paymentMethod, newOrder.totalPrice, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
+            
 
     await newOrder.save();
 
-    ((deliveryDate) => {
-      const jobTime = deliveryDate 
-        ? new Date(new Date(deliveryDate).getTime())
-        : new Date(Date.now() + 60 * 60 * 1000); // fallback if deliveryDate is null
+    // ((deliveryDate) => {
+    //   const jobTime = deliveryDate 
+    //     ? new Date(new Date(deliveryDate).getTime())
+    //     : new Date(Date.now() + 60 * 60 * 1000); // fallback if deliveryDate is null
       
-      const delay = jobTime.getTime() - Date.now();
+    //   const delay = jobTime.getTime() - Date.now();
     
-      if (delay > 0) {
-        setTimeout(async () => {
-          try {
+    //   if (delay > 0) {
+    //     setTimeout(async () => {
+    //       try {
 
-            // After the task is executed, call processDishCancellation
-            const { flag, canceledDishes} = await processDishCancellation(newOrder._id, dishInfoMap);
-            console.log(`Cancelable dishes processed: ${canceledDishes}`);
+    //         // After the task is executed, call processDishCancellation
+    //         const { flag, canceledDishes} = await processDishCancellation(newOrder._id, dishInfoMap);
+    //         console.log(`Cancelable dishes processed: ${canceledDishes}`);
 
-            // Execute before delivery time
-            await makeRequestForDelivery(newOrder._id, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
-            console.log(`Running task scheduled for delivery on: ${deliveryDate}`);
+    //         // Execute before delivery time
+    //         await makeRequestForDelivery(newOrder._id, newOrder.paymentMethod, newOrder.totalPrice, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
+    //         console.log(`Running task scheduled for delivery on: ${deliveryDate}`);
 
-          } catch (error) {
-            console.error('Error in scheduled delivery and cancellation task:', error);
-          }
-        }, delay);
-        console.log(`Job scheduled to run at: ${jobTime}`);
-      } else {
-        console.log("Scheduled time is in the past. Job will not run.");
-      }
-    })(deliveryDate);
+    //       } catch (error) {
+    //         console.error('Error in scheduled delivery and cancellation task:', error);
+    //       }
+    //     }, delay);
+    //     console.log(`Job scheduled to run at: ${jobTime}`);
+    //   } else {
+    //     console.log("Scheduled time is in the past. Job will not run.");
+    //   }
+    // })(deliveryDate);
 
     return res.status(201).json({ message: 'New order added', orderId: newOrder._id });
 
@@ -257,7 +264,7 @@ export const denyOrderByDeliveryBoy = async (req, res) => {
   return res.status(201).json({ message: 'Method complete.'});
 }
 
-const makeRequestForDelivery = async (orderId, consumerId, dishDetail, address, otpMap, canceledDishes) => {
+const makeRequestForDelivery = async (orderId, paymentMethod, totalPrice, consumerId, dishDetail, address, otpMap, canceledDishes) => {
 
   const arrayOfAddress = address.split(', ');
   const cityName = arrayOfAddress[arrayOfAddress.length - 2];
@@ -278,7 +285,11 @@ const makeRequestForDelivery = async (orderId, consumerId, dishDetail, address, 
 
     // Create the order object with consumer and dish details
     const orderDetails = {
-      orderId: orderId,
+      orderDetails: {
+        orderId,
+        paymentMethod,
+        totalPrice
+      },
       consumer: {
         name: consumer.name,
         phone: consumer.phoneNumber,
@@ -338,7 +349,7 @@ export const getPendingOrdersConsumer = async (req, res) => {
     const consumerId = req.userId;
     const orders = await OrderInfo.find({
       consumerId: consumerId,
-      status: { $in: ['pending', 'confirmed'] }
+      status: { $in: ['pending', 'confirmed', 'proceedToDelivery'] }
     });
 
     const updatedDishInfo = new Map(); // Temporary holder for updated dishInfo
@@ -412,3 +423,55 @@ export const cancelOrderConsumer = async (req, res) => {
     res.status(500).json({ error: 'Error canceling order.' });
   }
 };
+
+export const getCompleteOrdersConsumer = async (req, res) => {
+  try {
+    const consumerId = req.userId;
+    const orders = await OrderInfo.find({
+      consumerId: consumerId,
+      status: { $in: ['delivered'] }
+    });
+
+    const updatedDishInfo = new Map(); // Temporary holder for updated dishInfo
+
+    for (let order of orders) {
+
+      // Check if dishInfo is a Map
+      if (!(order.dishInfo instanceof Map)) {
+        order.dishInfo = new Map(Object.entries(order.dishInfo));
+      }
+
+      for (let [dishId, quantity] of order.dishInfo) {
+
+        // Fetch dish details from DishModule
+        const dishDetails = await DishInfo.findById(dishId);
+        if (!dishDetails) {
+          continue;
+        }
+
+        // Fetch related item details from ItemInfo
+        const itemDetails = await ItemDetails.find({ dishId: dishId });
+        
+        if (!itemDetails || itemDetails.length === 0) {
+          console.log(`No item details found for dishId: ${dishId}`);
+        }
+
+        // Attach the details to the updatedDishInfo map
+        updatedDishInfo.set(dishId, {
+          dishDetails: dishDetails,
+          itemDetails: itemDetails,
+        });
+      }
+    }
+
+    // Convert updatedDishInfo Map to an object for easier JSON serialization
+    const updatedDishInfoObject = Object.fromEntries(updatedDishInfo);
+
+    // Send both orders and updatedDishInfo to the client
+    res.json({ orders, updatedDishInfo: updatedDishInfoObject });
+    
+  } catch (error) {
+    console.error('Error fetching or processing orders in getPendingOrdersConsumer at backend side:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}

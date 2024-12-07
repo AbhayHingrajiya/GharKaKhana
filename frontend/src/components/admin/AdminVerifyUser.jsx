@@ -29,13 +29,35 @@ const AdminVerifyUser = () => {
         setExpandedUserId((prevId) => (prevId === id ? null : id));
     };
 
-    const handleAction = (id, action) => {
-        console.log(`Action: ${action}`);
-        console.log(`User ID: ${id}`);
-        console.log(`Comment: ${comment}`);
-        alert(`${action === 'verifyUser' ? 'Verified' : 'Blocked'} user with ID: ${id}`);
-        setComment(''); // Clear comment field
+    const handleAction = async (id, action) => {
+        try {
+            let res;
+            
+            if (action === 'sendComment') {
+                // Send the comment
+                res = await axios.post('/api/addComment', { id, comment });
+            } else if (action === 'verifyUser') {
+                // Verify the user
+                res = await axios.post('/api/verifyUser', { id, comment });
+            } else if (action === 'blockUser') {
+                // Block the user
+                res = await axios.post('/api/blockUser', { id, comment });
+            }
+    
+            if (res.data.success) {
+                alert('Action successful');
+            } else {
+                alert('Action failed:', res.data.error || 'Unknown error');
+            }
+            
+            // Clear the comment field after the action
+            setComment('');
+        } catch (error) {
+            console.error('Request failed:', error);
+            setComment('');
+        }
     };
+    
 
     const openImageModal = (imageUrl, number, role) => {
         setSelectedImage(imageUrl);

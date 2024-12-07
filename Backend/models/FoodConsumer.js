@@ -28,6 +28,10 @@ const foodConsumerSchema = new Schema({
     type: [String],
     default: []
   },
+  profilePic: {
+    type: String,
+    default: 'default'
+  },
   password: {
     type: String,
     required: true,
