@@ -91,3 +91,14 @@ function App() {
 }
 
 export default App;
+
+// .env content
+
+// PORT
+// JWT_SECRET
+// MONGODB_URI
+// NODEMAILER_EMAIL_PASS
+// EMAIL_USER
+// EMAIL_PASS
+// CASHFREE_ID
+// CASHFREE_SECRET_KEY

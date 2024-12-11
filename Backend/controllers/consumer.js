@@ -209,40 +209,42 @@ export const addNewOrder = async (req, res) => {
       dishDelivery: Object.fromEntries(dishDelivery),
       ...(deliveryDate != null && { deliveryDate })
     });
-    let canceledDishes = []
-    makeRequestForDelivery(newOrder._id, newOrder.paymentMethod, newOrder.totalPrice, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
+
+    //un comment if you want to send delivery request intent
+    // let canceledDishes = []
+    // makeRequestForDelivery(newOrder._id, newOrder.paymentMethod, newOrder.totalPrice, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
             
 
     await newOrder.save();
 
-    // ((deliveryDate) => {
-    //   const jobTime = deliveryDate 
-    //     ? new Date(new Date(deliveryDate).getTime())
-    //     : new Date(Date.now() + 60 * 60 * 1000); // fallback if deliveryDate is null
+    ((deliveryDate) => {
+      const jobTime = deliveryDate 
+        ? new Date(new Date(deliveryDate).getTime())
+        : new Date(Date.now() + 60 * 60 * 1000); // fallback if deliveryDate is null
       
-    //   const delay = jobTime.getTime() - Date.now();
+      const delay = jobTime.getTime() - Date.now();
     
-    //   if (delay > 0) {
-    //     setTimeout(async () => {
-    //       try {
+      if (delay > 0) {
+        setTimeout(async () => {
+          try {
 
-    //         // After the task is executed, call processDishCancellation
-    //         const { flag, canceledDishes} = await processDishCancellation(newOrder._id, dishInfoMap);
-    //         console.log(`Cancelable dishes processed: ${canceledDishes}`);
+            // After the task is executed, call processDishCancellation
+            const { flag, canceledDishes} = await processDishCancellation(newOrder._id, dishInfoMap);
+            console.log(`Cancelable dishes processed: ${canceledDishes}`);
 
-    //         // Execute before delivery time
-    //         await makeRequestForDelivery(newOrder._id, newOrder.paymentMethod, newOrder.totalPrice, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
-    //         console.log(`Running task scheduled for delivery on: ${deliveryDate}`);
+            // Execute before delivery time
+            await makeRequestForDelivery(newOrder._id, newOrder.paymentMethod, newOrder.totalPrice, consumerId, dishInfoMap, selectedAddress, otp, canceledDishes);
+            console.log(`Running task scheduled for delivery on: ${deliveryDate}`);
 
-    //       } catch (error) {
-    //         console.error('Error in scheduled delivery and cancellation task:', error);
-    //       }
-    //     }, delay);
-    //     console.log(`Job scheduled to run at: ${jobTime}`);
-    //   } else {
-    //     console.log("Scheduled time is in the past. Job will not run.");
-    //   }
-    // })(deliveryDate);
+          } catch (error) {
+            console.error('Error in scheduled delivery and cancellation task:', error);
+          }
+        }, delay);
+        console.log(`Job scheduled to run at: ${jobTime}`);
+      } else {
+        console.log("Scheduled time is in the past. Job will not run.");
+      }
+    })(deliveryDate);
 
     return res.status(201).json({ message: 'New order added', orderId: newOrder._id });
 
